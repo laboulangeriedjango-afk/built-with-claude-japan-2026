@@ -5,11 +5,23 @@
 """
 import argparse
 import json
+import wave
 from pathlib import Path
 
+import numpy as np
 from faster_whisper import WhisperModel
 
+SAMPLE_RATE = 16000
 PROMPT = "パネットーネの本捏ね。ミキサー、生地、卵黄、バター、砂糖、グルテン、捏ね上げ、生地温度。"
+
+
+def read_wav(path: Path, start: float) -> np.ndarray:
+    """16kHz モノラルの WAV を start 秒以降だけ読む（PyAV のバージョン差を避けるため自前で読む）。"""
+    with wave.open(str(path), "rb") as w:
+        assert w.getframerate() == SAMPLE_RATE and w.getnchannels() == 1
+        w.setpos(int(start * SAMPLE_RATE))
+        pcm = w.readframes(w.getnframes() - w.tell())
+    return np.frombuffer(pcm, dtype=np.int16).astype(np.float32) / 32768.0
 
 
 def transcribe(model: WhisperModel, folder: Path) -> None:
@@ -23,16 +35,18 @@ def transcribe(model: WhisperModel, folder: Path) -> None:
         if lines:
             start = json.loads(lines[-1])["end"]
     segments, _ = model.transcribe(
-        str(folder / "audio.wav"),
+        read_wav(folder / "audio.wav", start),
         language="ja",
         initial_prompt=PROMPT,
         vad_filter=True,
         condition_on_previous_text=False,
-        clip_timestamps=[start],
+        word_timestamps=True,
     )
     with path.open("a", encoding="utf-8") as f:
         for s in segments:
-            row = {"start": round(s.start, 2), "end": round(s.end, 2), "text": s.text.strip()}
+            # セグメントの区間は無音を含んで長くなるため、実際に話した単語の時刻を使う
+            begin, end = (s.words[0].start, s.words[-1].end) if s.words else (s.start, s.end)
+            row = {"start": round(begin + start, 2), "end": round(end + start, 2), "text": s.text.strip()}
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
             f.flush()
             print(folder.name, row, flush=True)
