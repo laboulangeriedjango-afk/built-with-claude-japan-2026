@@ -46,10 +46,18 @@ def transcribe(model: WhisperModel, folder: Path) -> None:
         for s in segments:
             # セグメントの区間は無音を含んで長くなるため、実際に話した単語の時刻を使う
             begin, end = (s.words[0].start, s.words[-1].end) if s.words else (s.start, s.end)
-            row = {"start": round(begin + start, 2), "end": round(end + start, 2), "text": s.text.strip()}
+            row = {
+                "start": round(begin + start, 2),
+                "end": round(end + start, 2),
+                "text": s.text.strip(),
+                "words": [
+                    {"start": round(w.start + start, 2), "end": round(w.end + start, 2), "word": w.word}
+                    for w in s.words or []
+                ],
+            }
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
             f.flush()
-            print(folder.name, row, flush=True)
+            print(folder.name, row["start"], row["end"], row["text"], flush=True)
     done.touch()
 
 
