@@ -10,6 +10,7 @@ import {
   isOverLimit,
   latestTemp,
   matchingTempBranches,
+  needsRescue,
   recordTemp,
   situationalBranches,
   timing,
@@ -88,6 +89,30 @@ function principlesPanel() {
   return el("details", { className: "panel principles" },
     el("summary", { textContent: "全体の決まり" }),
     el("ul", { className: "notes" }, ...process.principles.map((text) => el("li", { textContent: text }))));
+}
+
+function rescuePanel() {
+  const { cause, actions } = process.rescue;
+  return el("section", { className: "panel alert rescue" },
+    el("h2", { textContent: "生地温度が高くなっています" }),
+    el("ol", { className: "rescue-actions" }, ...actions.map((action) =>
+      el("li", {}, action.last_resort ? el("strong", { textContent: "最後の手段　" }) : null, action.text))),
+    el("details", { className: "source" }, el("summary", { textContent: "なぜ温度が問題なのか" }), el("p", { textContent: cause })));
+}
+
+function signsPanel() {
+  if (!process.rescue) return null;
+  const { signs, sign_action: action } = process.rescue;
+  return el("section", { className: "panel" },
+    el("h2", { textContent: "危険のサイン" }),
+    el("ul", { className: "notes" }, ...signs.map((text) => el("li", { textContent: text }))),
+    el("div", { className: "temp-row camera-actions" }, el("button", {
+      textContent: "様子がおかしい",
+      onclick: () => {
+        speak(action);
+        document.querySelector('input[type="number"]')?.focus();
+      },
+    })));
 }
 
 function limitAlert() {
@@ -257,6 +282,7 @@ function tempPanel(step) {
     setSession(recordTemp(session, step.id, temp, Date.now()));
     const [branch] = matchingTempBranches(step, temp);
     if (isOverLimit(process, temp)) speak(limitAlert().text);
+    else if (needsRescue(process, temp)) speak("生地温度が高くなっています。対処を確認してください。");
     else if (branch) speak(branch.instruction);
   };
   return el("section", { className: "panel" },
@@ -285,10 +311,11 @@ function renderStep() {
       textContent: `目安 ${step.typical_minutes.min}〜${step.typical_minutes.max}分。${TIMING_LABEL[timing(step, minutes)]}`,
     }),
     isOverLimit(process, temp) ? limitAlert().node : null,
+    needsRescue(process, temp) ? rescuePanel() : null,
     isFinished(process, session) ? finishLine(temp) : null,
     ...alerts.map((b) => el("section", { className: "panel alert" },
       el("p", { textContent: b.instruction }), ...b.evidence.map(sourceLine))),
-    step.ask_dough_temp ? tempPanel(step) : null,
+    tempPanel(step),
     cameraPanel(step),
     el("section", { className: "panel" },
       el("h2", { textContent: "次へ進む基準" }),
@@ -300,6 +327,7 @@ function renderStep() {
       el("ul", { className: "notes" }, ...notes.map((b) =>
         el("li", {}, el("p", { textContent: `${b.when.note}：${b.instruction}` }), evidenceDetails(b.evidence)))),
     ) : null,
+    signsPanel(),
     principlesPanel(),
     el("div", { className: "actions" },
       el("button", { textContent: "戻る", onclick: () => setSession(back(session, Date.now())) }),

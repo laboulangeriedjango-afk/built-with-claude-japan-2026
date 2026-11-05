@@ -80,6 +80,7 @@ def output_schema() -> dict:
     schema["properties"].pop("principles")
     schema["$defs"]["criterion"]["properties"].pop("reference_frames")
     schema["properties"].pop("limits")
+    schema["properties"].pop("rescue")
     return {key: value for key, value in schema.items() if key not in ("$schema", "title")}
 
 

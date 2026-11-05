@@ -12,6 +12,7 @@ import {
   isOverLimit,
   latestTemp,
   matchingTempBranches,
+  needsRescue,
   recordTemp,
   situationalBranches,
   timing,
@@ -89,4 +90,12 @@ test("捏ね上げ温度と目標の差を出す", () => {
   assert.equal(finishDifference(ruled, 25.7), -0.3);
   assert.equal(finishDifference(ruled, 26), 0);
   assert.equal(finishDifference(ruled, null), null);
+});
+
+test("職人の語った温度から対処を示す", () => {
+  const rescued = { rescue: { warn_temp: 26.6 } };
+  assert.equal(needsRescue(rescued, 26.5), false);
+  assert.equal(needsRescue(rescued, 26.6), true);
+  assert.equal(needsRescue(rescued, null), false);
+  assert.equal(needsRescue({}, 30), false);
 });

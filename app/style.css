@@ -106,3 +106,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); ou
 .verdict.met { color: var(--accent); }
 .verdict.not_yet { color: var(--text); }
 .verdict.unclear { color: var(--muted); }
+
+.rescue h2 { color: var(--warn); }
+.rescue-actions { margin: 0 0 8px; padding-left: 1.4em; display: grid; gap: 8px; }
+.rescue-actions strong { color: var(--warn); }

@@ -51,6 +51,56 @@
           "description": "捏ね上げ温度の目標"
         }
       }
+    },
+    "rescue": {
+      "type": "object",
+      "description": "職人が語った、失敗の原因、前兆、対処",
+      "required": [
+        "warn_temp",
+        "cause",
+        "signs",
+        "sign_action",
+        "actions"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "warn_temp": {
+          "type": "number",
+          "description": "この温度以上で対処を示す"
+        },
+        "cause": {
+          "type": "string"
+        },
+        "signs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sign_action": {
+          "type": "string"
+        },
+        "actions": {
+          "type": "array",
+          "description": "試す順の対処",
+          "items": {
+            "type": "object",
+            "required": [
+              "text",
+              "last_resort"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "last_resort": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "$defs": {

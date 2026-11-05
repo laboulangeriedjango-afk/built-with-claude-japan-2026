@@ -99,6 +99,23 @@ function rulesPanel(process, previous) {
     ...process.principles.map((text) => item({ isNew: !known.has(text), children: [el("p", { textContent: text })] })));
 }
 
+function rescueSection(process, previous) {
+  if (!process.rescue) return null;
+  const isNew = !previous?.rescue;
+  const { warn_temp: warn, cause, signs, sign_action: action, actions } = process.rescue;
+  return el("section", { className: "panel step" },
+    el("h2", { textContent: "職人が語った失敗と対処" }),
+    item({ isNew, children: [el("p", { textContent: cause })] }),
+    el("h3", { textContent: "危険のサイン" }),
+    ...signs.map((text) => item({ isNew, children: [el("p", { textContent: text })] })),
+    el("p", { className: "muted", textContent: action }),
+    el("h3", { textContent: `${warn}℃以上での対処（順に試す）` }),
+    ...actions.map((a, i) => item({
+      isNew,
+      children: [el("p", { textContent: `${i + 1}. ${a.last_resort ? "最後の手段：" : ""}${a.text}` })],
+    })));
+}
+
 function render(versions, index) {
   const process = versions[index];
   const known = index > 0 ? knownTexts(versions[index - 1]) : null;
@@ -106,7 +123,7 @@ function render(versions, index) {
   const branchCount = steps.reduce((sum, s) => sum + s.branches.length, 0);
   const tabs = versions.map((v, i) => {
     const button = el("button", {
-      textContent: `v${v.version}（${v.source_runs.length}回分${v.principles?.length ? "＋職人の確認" : ""}）`,
+      textContent: `v${v.version}（${v.source_runs.length}回分${v.rescue ? "＋失敗の知見" : v.principles?.length ? "＋職人の確認" : ""}）`,
       onclick: () => render(versions, i),
     });
     button.setAttribute("aria-pressed", String(i === index));
@@ -120,6 +137,7 @@ function render(versions, index) {
     }),
     el("div", { className: "tabs" }, ...tabs),
     rulesPanel(process, versions[index - 1]),
+    rescueSection(process, versions[index - 1]),
     ...steps.map((step, i) => stepPanel(step, i, known)),
   );
 }

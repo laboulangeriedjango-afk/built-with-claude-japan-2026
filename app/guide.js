@@ -55,6 +55,12 @@ export function isOverLimit(process, temp) {
   return temp !== null && limit !== undefined && temp >= limit;
 }
 
+// 職人が語った対処を示す温度に届いたかどうか。
+export function needsRescue(process, temp) {
+  const warn = process.rescue?.warn_temp;
+  return temp !== null && warn !== undefined && temp >= warn;
+}
+
 // 捏ね上げ温度の目標との差。目標のないデータや未入力では null。
 export function finishDifference(process, temp) {
   const target = process.limits?.finish_temp_target;
