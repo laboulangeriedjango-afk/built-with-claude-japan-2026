@@ -13,7 +13,9 @@ Built with Claude: Japan 2026（2026-11-02 12:30 〜 2026-11-08 20:00 JST）の�
 
 本捏ねは失敗する確率が高く、初心者には任せられません。パネットーネの生地は、バターと砂糖が通常のパンよりはるかに多く、とても作りづらい生地です。そのうえ全工程は3日に及び、材料代も高いので失敗が許されません。失敗は経済的にはもちろん、精神的にもとても堪えます。
 
-パネットーネを選んだのは、難易度が最も高いからです。これができれば、すべてのパンのミキシングを支援できます。
+パネットーネを選んだのは、難易度が最も高いからです。
+
+ほとんどのパンは、はじめに油脂以外の材料を入れてよくミキシングし、最後のほうで油脂を入れて仕上げます。パネットーネよりはるかに簡単で、大きな失敗は基本的に起こりづらい一方、各工程での見極めというシェフの暗黙知が結果を微妙に左右し、それが店の味になっています。パネットーネは、生地がドロドロになってどうにもならなくなることもあります。だから、これができれば、ほとんどのパンのミキシングも支援できます。
 
 今回は卓上ミキサーで試作しています。この先に目指すのは、業務用への展開と、自動でのミキシングです。それも画一的なものではなく、その店のシェフの知見を備えた自動ミキシングです。
 
@@ -47,23 +49,64 @@ B を更新するには、新しい仕込みの動画を A に通し、そのデ
 
 ## 動かし方
 
-B（案内アプリ）はビルド不要です。リポジトリの直下で次を実行し、`http://localhost:8000/app/` を開きます。
+B（案内アプリ）は次のアドレスで使えます。
+
+https://laboulangeriedjango-afk.github.io/built-with-claude-japan-2026/app/
+
+工程データの確認画面は `/app/review.html` です。カメラの確認には、利用者自身の Claude API キーが必要です。キーはその端末のブラウザにだけ保存します。カメラを使わなくても、案内は最後まで使えます。
+
+手元で動かすときは、リポジトリの直下で次を実行し、`http://localhost:8000/app/` を開きます。
 
 ```
 python -m http.server 8000
 ```
 
-テストは `node --test app/guide.test.js`、工程データの検査は `python analyzer/validate.py data/processed/process.json shared/process.schema.json` で実行します。
+A（工程の採集）の手順です。動画の原本はリポジトリに含めていません。
+
+```
+pip install -r analyzer/requirements.txt
+python analyzer/extract.py <動画フォルダ> <作業フォルダ>
+python analyzer/transcribe.py <作業フォルダ> --name transcript_loose
+python analyzer/build_process.py <作業フォルダ> data/processed/versions/v1.json --runs run1 run2 run3
+python analyzer/build_process.py <作業フォルダ> data/processed/versions/v2.json --base data/processed/versions/v1.json --runs run4
+python analyzer/build_refs.py data/processed/versions/v2.json <作業フォルダ> --hold-out run4
+```
+
+検査とテストは次のとおりです。
+
+```
+python analyzer/validate.py data/processed/process.json shared/process.schema.json <作業フォルダ>
+node --test app/guide.test.js
+```
 
 ## データの出典
 
-（使ったサンプル・データの出典と利用条件を記入予定）
+- 動画と語り：参加者本人が 2026-11-03 に撮影した、4回の本捏ねの記録です。リポジトリには、参考映像として切り出した静止画だけを置いています
+- 文字起こしの原文は、雑談を含むため公開していません。公開しているのは作業に関する発言だけです
+
+使用しているソフトウェアは次のとおりです。
+
+| ソフトウェア | 用途 |
+| --- | --- |
+| Anthropic SDK（Python / TypeScript） | Claude API の呼び出し。`app/vendor/` に同梱 |
+| faster-whisper と Whisper small モデル | 文字起こし |
+| imageio-ffmpeg（FFmpeg） | 音声とコマの抽出。開発環境でのみ使用 |
+| Pillow、NumPy、jsonschema | 画像の処理とデータの検査 |
 
 ## Claude の使い方
 
-どこで Claude Code を使い、どのモデル・機能（Skills、サブエージェント、MCP、フックなど）を何のために選んだかを書きます。
+**プロダクトの中で**
 
-（記入予定）
+- 語りからの工程の採集（`analyzer/build_process.py`）：Claude Opus 5.5 の構造化出力で、文字起こしを `shared/process.schema.json` の形にします。語られていない内容を足さないよう指示し、根拠の発言が文字起こしに実在するかをプログラムで検査します。検査に通らないデータは出力しません
+- 差分更新：既存の工程データに新しい仕込みの語りを反映します。v1（3回分）から v2（4回分）で判断が増えます
+- 職人の知見の反映：誤認識の修正（`analyzer/corrections.json`）と全体の決まり（`analyzer/craft_rules.json`）を入力にします。AI が「12分」と読んだ語りは、本人の確認で「十二分に」と直しました
+- 映像の確認（`app/vision.js`）：語りの時点の映像と職人の言葉を参考に、今の工程の基準に届いたかだけを Claude に問います。工程の進行は自動では行いません
+
+**開発の中で**
+
+- Claude Code で、設計、実装、テスト、ブラウザでの画面確認までを進めました
+- `claude-api` スキルで、モデル、構造化出力、画像入力の最新の使い方を確認しました
+- 映像の確認は、参考映像に使っていない4回目の映像で検証しました（`analyzer/eval_vision.mjs`）。8場面のうち一致4、判断不能3、誤り1で、回転中の艶の判定が苦手と分かったため、結果を参考扱いとして画面に明記しています
 
 ## ライセンス
 
