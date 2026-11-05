@@ -1,0 +1,31 @@
+main.review { max-width: 760px; }
+
+.summary { color: var(--muted); }
+
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+.tabs button[aria-pressed="true"] { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+
+.step { display: grid; gap: 12px; }
+.step h2 { color: var(--text); font-size: 1.25rem; margin: 0; }
+.step h3 { color: var(--muted); font-size: 0.9rem; margin: 8px 0 0; font-weight: 600; }
+
+.item { border-top: 1px solid var(--line); padding-top: 8px; display: grid; gap: 2px; }
+.item.new { border-left: 4px solid var(--accent); border-top: 0; padding: 8px 0 8px 12px; }
+
+.badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  margin-right: 6px;
+}
+
+.kind { color: var(--muted); font-size: 0.85rem; }
+.question { color: var(--muted); font-size: 0.9rem; }
+
+details { font-size: 0.85rem; color: var(--muted); }
+summary { cursor: pointer; min-height: 32px; }
+details p { margin-top: 4px; }
