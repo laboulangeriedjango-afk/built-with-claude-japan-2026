@@ -49,7 +49,8 @@ function item({ isNew, children }) {
 function referenceRow(c) {
   if (!c.reference_frames?.length) return null;
   return el("div", { className: "refs" }, ...c.reference_frames.map((r) => {
-    const label = `${r.run.replace("run", "")}回目 ${formatClock(r.at_sec * 1000)}「${r.quote}」`;
+    const example = r.state === "not_yet" ? "まだの例" : "届いた例";
+    const label = `${example}　${r.run.replace("run", "")}回目 ${formatClock(r.frame_sec * 1000)}「${r.quote}」`;
     return el("figure", {},
       el("img", { src: `../data/processed/${r.path}`, alt: label, loading: "lazy" }),
       el("figcaption", { textContent: label }));

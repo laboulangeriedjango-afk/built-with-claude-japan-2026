@@ -2,6 +2,7 @@
 
 発言の近くでミキサーが止まっていれば、そのコマを使う（find_stops.py の結果）。
 なければ、発言の前後から最も鮮明なコマを選ぶ。
+自動で選んだコマは人が確かめ、curated_refs.json で差し替える。
 使い方: python build_refs.py <工程データ> <文字起こしの親フォルダ> --hold-out run4
 --hold-out の仕込みは精度の検証に使うので、参考映像に含めない。
 """
@@ -16,6 +17,7 @@ FRAME_INTERVAL_SEC = 5
 SEARCH_FRAMES = 2
 MAX_REFERENCES = 2
 STOP_SEARCH_SEC = 90
+CURATED_PATH = Path(__file__).resolve().parent / "curated_refs.json"
 
 
 def sharpness(path: Path) -> float:
@@ -58,6 +60,37 @@ def choose_evidence(evidence: list[dict], hold_out: set[str]) -> list[dict]:
     return chosen[:MAX_REFERENCES]
 
 
+def apply_curation(data: dict, runs: dict[str, Path], refs_dir: Path) -> None:
+    curated = json.loads(CURATED_PATH.read_text(encoding="utf-8"))
+    for step in data["steps"]:
+        for criterion in step["criteria"]:
+            references = [r for r in criterion.get("reference_frames", []) if r["path"] not in curated["drop"]]
+            for reference in references:
+                if reference["path"] in curated["not_yet"]:
+                    reference["state"] = "not_yet"
+            if "reference_frames" in criterion:
+                criterion["reference_frames"] = references
+    for path in curated["drop"]:
+        (refs_dir.parent / path).unlink(missing_ok=True)
+    for entry in curated["add"]:
+        step = next(s for s in data["steps"] if s["id"] == entry["step"])
+        criterion = next(
+            c for c in step["criteria"]
+            if c["kind"] == "sight" and entry["match"] in c["visual_question"]
+        )
+        name = f"{entry['run']}_f{entry['frame']}.jpg"
+        source = runs[entry["run"]] / "frames" / f"{entry['frame']:05d}.jpg"
+        (refs_dir / name).write_bytes(source.read_bytes())
+        criterion["reference_frames"].append({
+            "path": f"refs/{name}",
+            "run": entry["run"],
+            "at_sec": entry["at_sec"],
+            "quote": entry["quote"],
+            "state": entry["state"],
+            "frame_sec": (entry["frame"] - 1) * FRAME_INTERVAL_SEC,
+        })
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("process", type=Path)
@@ -89,9 +122,12 @@ def main() -> None:
                     "run": item["run"],
                     "at_sec": item["at_sec"],
                     "quote": item["quote"],
+                    "state": "good",
+                    "frame_sec": (int(frame.stem) - 1) * FRAME_INTERVAL_SEC,
                 })
                 count += 1
             criterion["reference_frames"] = references
+    apply_curation(data, runs, refs_dir)
     args.process.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"参考映像 {count} 件")
 

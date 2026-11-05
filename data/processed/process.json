@@ -103,13 +103,17 @@
               "path": "refs/run2_54.jpg",
               "run": "run2",
               "at_sec": 54,
-              "quote": "生地が少しほぐれたら粉を入れる。"
+              "quote": "生地が少しほぐれたら粉を入れる。",
+              "state": "good",
+              "frame_sec": 0
             },
             {
               "path": "refs/run1_59.jpg",
               "run": "run1",
               "at_sec": 59,
-              "quote": "粉全形を入れました。"
+              "quote": "粉全形を入れました。",
+              "state": "good",
+              "frame_sec": 0
             }
           ]
         }
@@ -152,13 +156,17 @@
               "path": "refs/run1_1138.jpg",
               "run": "run1",
               "at_sec": 1138,
-              "quote": "目安は生地の表面が細かく滑らかになるまで"
+              "quote": "目安は生地の表面が細かく滑らかになるまで",
+              "state": "good",
+              "frame_sec": 1135
             },
             {
               "path": "refs/run2_1115.jpg",
               "run": "run2",
               "at_sec": 1115,
-              "quote": "面がツルッとしてきたので"
+              "quote": "面がツルッとしてきたので",
+              "state": "good",
+              "frame_sec": 1120
             }
           ]
         },
@@ -301,13 +309,9 @@
               "path": "refs/run1_1789.jpg",
               "run": "run1",
               "at_sec": 1789,
-              "quote": "だいたい混ざったら次塩と卵黄3分の1位。"
-            },
-            {
-              "path": "refs/run2_1169.jpg",
-              "run": "run2",
-              "at_sec": 1169,
-              "quote": "状態で次へ行く"
+              "quote": "だいたい混ざったら次塩と卵黄3分の1位。",
+              "state": "good",
+              "frame_sec": 1800
             }
           ]
         }
@@ -349,13 +353,17 @@
               "path": "refs/run1_1902.jpg",
               "run": "run1",
               "at_sec": 1902,
-              "quote": "これもだいたい混ざったら"
+              "quote": "これもだいたい混ざったら",
+              "state": "good",
+              "frame_sec": 1910
             },
             {
               "path": "refs/run2_1492.jpg",
               "run": "run2",
               "at_sec": 1492,
-              "quote": "これで次バターと最後の3分の1の卵を入れる"
+              "quote": "これで次バターと最後の3分の1の卵を入れる",
+              "state": "good",
+              "frame_sec": 1490
             }
           ]
         }
@@ -423,13 +431,17 @@
               "path": "refs/run1_1930.jpg",
               "run": "run1",
               "at_sec": 1930,
-              "quote": "生地をちぎってバターを中に入れます。"
+              "quote": "生地をちぎってバターを中に入れます。",
+              "state": "not_yet",
+              "frame_sec": 1920
             },
             {
               "path": "refs/run2_1749.jpg",
               "run": "run2",
               "at_sec": 1749,
-              "quote": "壁にくっついてしまうバターは"
+              "quote": "壁にくっついてしまうバターは",
+              "state": "not_yet",
+              "frame_sec": 1760
             }
           ]
         },
@@ -449,7 +461,24 @@
               "quote": "あとはミキサーで混ぜるよ"
             }
           ],
-          "reference_frames": []
+          "reference_frames": [
+            {
+              "path": "refs/run4_f305.jpg",
+              "run": "run4",
+              "at_sec": 1499,
+              "quote": "残りの卵黄も入れるよ。",
+              "state": "not_yet",
+              "frame_sec": 1520
+            },
+            {
+              "path": "refs/run4_f335.jpg",
+              "run": "run4",
+              "at_sec": 1628,
+              "quote": "大きな塊はもうないので",
+              "state": "good",
+              "frame_sec": 1670
+            }
+          ]
         }
       ],
       "branches": [
@@ -516,16 +545,20 @@
           ],
           "reference_frames": [
             {
-              "path": "refs/run1_2123.jpg",
-              "run": "run1",
-              "at_sec": 2123,
-              "quote": "ここで生地が滑らかになるまでしっかり緩めています。"
-            },
-            {
               "path": "refs/run1_2427.jpg",
               "run": "run1",
               "at_sec": 2427,
-              "quote": "まだちょっと粗い。"
+              "quote": "まだちょっと粗い。",
+              "state": "not_yet",
+              "frame_sec": 2435
+            },
+            {
+              "path": "refs/run4_f448.jpg",
+              "run": "run4",
+              "at_sec": 2229,
+              "quote": "引っ張るとついてくるでしょう",
+              "state": "good",
+              "frame_sec": 2235
             }
           ]
         },
@@ -818,13 +851,25 @@
               "path": "refs/run1_2817.jpg",
               "run": "run1",
               "at_sec": 2817,
-              "quote": "そしたら最後にフルーツを入れて"
+              "quote": "そしたら最後にフルーツを入れて",
+              "state": "not_yet",
+              "frame_sec": 2820
             },
             {
-              "path": "refs/run2_2741.jpg",
+              "path": "refs/run2_f560.jpg",
               "run": "run2",
-              "at_sec": 2741,
-              "quote": "ブーツを入れる。"
+              "at_sec": 2827,
+              "quote": "生地の温度25.5度",
+              "state": "good",
+              "frame_sec": 2795
+            },
+            {
+              "path": "refs/run1_f588.jpg",
+              "run": "run1",
+              "at_sec": 2914,
+              "quote": "生地が全部ついてくるので",
+              "state": "good",
+              "frame_sec": 2935
             }
           ]
         },

@@ -30,8 +30,3 @@ main.review { max-width: 760px; }
 details { font-size: 0.85rem; color: var(--muted); }
 summary { cursor: pointer; min-height: 32px; }
 details p { margin-top: 4px; }
-
-.refs { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; margin: 8px 0; }
-.refs figure { margin: 0; }
-.refs img { width: 100%; border-radius: 8px; display: block; }
-.refs figcaption { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }

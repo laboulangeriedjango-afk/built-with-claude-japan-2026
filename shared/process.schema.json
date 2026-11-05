@@ -167,7 +167,9 @@
               "path",
               "run",
               "at_sec",
-              "quote"
+              "quote",
+              "state",
+              "frame_sec"
             ],
             "additionalProperties": false,
             "properties": {
@@ -182,6 +184,17 @@
               },
               "quote": {
                 "type": "string"
+              },
+              "state": {
+                "enum": [
+                  "good",
+                  "not_yet"
+                ],
+                "description": "good は届いた例、not_yet はまだの例"
+              },
+              "frame_sec": {
+                "type": "number",
+                "description": "映像の時刻。at_sec は根拠の発言の時刻"
               }
             }
           }

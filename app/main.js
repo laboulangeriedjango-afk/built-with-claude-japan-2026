@@ -208,6 +208,20 @@ function keyForm() {
   );
 }
 
+function chefPanel(step) {
+  const frames = sightCriteria(step).flatMap((c) =>
+    (c.reference_frames ?? []).map((frame) => ({ ...frame, text: c.text })));
+  if (!frames.length) return null;
+  return el("section", { className: "panel" },
+    el("h2", { textContent: "シェフの映像と見比べる" }),
+    el("div", { className: "refs" }, ...frames.map(({ path, run, frame_sec: sec, state, text }) => {
+      const label = `${state === "not_yet" ? "まだの例" : "届いた例"}　${run.replace("run", "")}回目 ${formatClock(sec * 1000)}`;
+      return el("figure", {},
+        el("img", { src: `../data/processed/${path}`, alt: `${label} ${text}`, loading: "lazy" }),
+        el("figcaption", { textContent: `${label}：${text}` }));
+    })));
+}
+
 function cameraPanel(step) {
   const criteria = sightCriteria(step);
   if (!criteria.length) return null;
@@ -316,6 +330,7 @@ function renderStep() {
     ...alerts.map((b) => el("section", { className: "panel alert" },
       el("p", { textContent: b.instruction }), ...b.evidence.map(sourceLine))),
     tempPanel(step),
+    chefPanel(step),
     cameraPanel(step),
     el("section", { className: "panel" },
       el("h2", { textContent: "次へ進む基準" }),

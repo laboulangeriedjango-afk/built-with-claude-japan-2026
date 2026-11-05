@@ -1,0 +1,22 @@
+{
+  "drop": [
+    "refs/run2_1169.jpg",
+    "refs/run4_1628.jpg",
+    "refs/run4_1630.jpg",
+    "refs/run2_2741.jpg",
+    "refs/run1_2123.jpg"
+  ],
+  "not_yet": [
+    "refs/run1_1930.jpg",
+    "refs/run2_1749.jpg",
+    "refs/run1_2427.jpg",
+    "refs/run1_2817.jpg"
+  ],
+  "add": [
+    { "step": "step5", "match": "塊", "run": "run4", "frame": 305, "state": "not_yet", "at_sec": 1499, "quote": "残りの卵黄も入れるよ。" },
+    { "step": "step5", "match": "塊", "run": "run4", "frame": 335, "state": "good", "at_sec": 1628, "quote": "大きな塊はもうないので" },
+    { "step": "step6", "match": "艶", "run": "run4", "frame": 448, "state": "good", "at_sec": 2229, "quote": "引っ張るとついてくるでしょう" },
+    { "step": "step7", "match": "フック", "run": "run2", "frame": 560, "state": "good", "at_sec": 2827, "quote": "生地の温度25.5度" },
+    { "step": "step7", "match": "フック", "run": "run1", "frame": 588, "state": "good", "at_sec": 2914, "quote": "生地が全部ついてくるので" }
+  ]
+}

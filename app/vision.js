@@ -9,6 +9,7 @@ const SYSTEM = `あなたはパネットーネの本捏ねで、職人の基準�
 「今の映像」は、今のミキサーを数秒の間に撮った複数の画像です。参考映像は、同じカメラ位置で撮った職人自身の仕込みの映像です。
 
 守ること:
+- バターは白から淡いクリーム色の塊や粒に見え、生地は濃い黄色に見える。色と形で見分ける
 - 与えられた基準の質問だけに答える。一般的な製パン知識で判断を広げない
 - 参考映像と職人の言葉を手がかりに、今の映像を比べる
 - 回転中の映像はぶれる。回転中は細部ではなく、全体の色、形、まとまり方、ボウルへの付き方で判断する
@@ -36,8 +37,9 @@ function imageBlock(data) {
 
 export function buildVisionRequest({ stepTitle, criterion, references, currentImages, stopped = false }) {
   const content = [];
-  references.forEach(({ data, run, quote }) => {
-    content.push({ type: "text", text: `参考映像（${run.replace("run", "")}回目。職人の言葉「${quote}」）` });
+  references.forEach(({ data, run, quote, state }) => {
+    const example = state === "not_yet" ? "まだの例" : "届いた例";
+    content.push({ type: "text", text: `参考映像：${example}（${run.replace("run", "")}回目。職人の言葉「${quote}」）` });
     content.push(imageBlock(data));
   });
   content.push({ type: "text", text: stopped ? "今の映像（ミキサーを止めて撮影）" : "今の映像（回転中に撮影）" });

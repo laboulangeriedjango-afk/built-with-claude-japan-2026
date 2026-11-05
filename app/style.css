@@ -110,3 +110,8 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); ou
 .rescue h2 { color: var(--warn); }
 .rescue-actions { margin: 0 0 8px; padding-left: 1.4em; display: grid; gap: 8px; }
 .rescue-actions strong { color: var(--warn); }
+
+.refs { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.refs figure { margin: 0; }
+.refs img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; display: block; }
+.refs figcaption { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
