@@ -1,0 +1,156 @@
+{
+  "version": 1,
+  "source_runs": ["run1", "run2", "run3", "run4"],
+  "steps": [
+    {
+      "id": "start",
+      "title": "開始と温度の記録",
+      "instruction": "中種の温度と室温を測って記録し、ミキサーを始めてください。",
+      "typical_minutes": { "min": 0, "max": 1 },
+      "ask_dough_temp": true,
+      "criteria": [
+        { "kind": "temperature", "text": "開始時の生地温度を記録する", "evidence": [
+          { "run": "run1", "at_sec": 10, "quote": "生地温度24.9℃、室温25.5℃、スタート。" },
+          { "run": "run4", "at_sec": 6, "quote": "中だねの生地温17.5℃" }
+        ] }
+      ],
+      "branches": []
+    },
+    {
+      "id": "flour",
+      "title": "粉を入れる",
+      "instruction": "生地が少しほぐれたら粉を入れ、粉の温度も記録してください。",
+      "typical_minutes": { "min": 1, "max": 2 },
+      "criteria": [
+        { "kind": "sight", "text": "生地が少しほぐれている", "visual_question": "中種の塊が少しほぐれていますか？", "evidence": [
+          { "run": "run2", "at_sec": 54, "quote": "生地が少しほぐれたら粉を入れる。" },
+          { "run": "run4", "at_sec": 79, "quote": "粉を入れる。" }
+        ] }
+      ],
+      "branches": []
+    },
+    {
+      "id": "first_mix",
+      "title": "中種と粉で最初のミキシング",
+      "instruction": "中種と粉だけで、しっかり捏ねてください。後の工程を左右する大事な工程です。",
+      "typical_minutes": { "min": 2, "max": 26 },
+      "ask_dough_temp": true,
+      "criteria": [
+        { "kind": "sight", "text": "生地の表面が細かく滑らかになるまで", "visual_question": "生地の表面は細かく滑らかで、ツヤがありますか？", "evidence": [
+          { "run": "run1", "at_sec": 1146, "quote": "目安は生地の表面が細かく滑らかになるまで" },
+          { "run": "run2", "at_sec": 1116, "quote": "表面がツルッとしてきたので" },
+          { "run": "run3", "at_sec": 809, "quote": "だいぶツヤが出てきた。" }
+        ] }
+      ],
+      "branches": []
+    },
+    {
+      "id": "sugar_yolk1",
+      "title": "砂糖類と卵黄の3分の1",
+      "instruction": "砂糖類と、冷蔵庫で冷やした卵黄の3分の1を入れてください。",
+      "typical_minutes": { "min": 18, "max": 27 },
+      "criteria": [
+        { "kind": "sight", "text": "だいたい混ざったら次へ", "visual_question": "卵黄が生地にだいたい混ざりましたか？", "evidence": [
+          { "run": "run2", "at_sec": 1119, "quote": "砂糖類と" },
+          { "run": "run2", "at_sec": 1130, "quote": "冷たいものを入れる" },
+          { "run": "run1", "at_sec": 1790, "quote": "だいたい混ざったら" }
+        ] }
+      ],
+      "branches": []
+    },
+    {
+      "id": "salt_yolk2",
+      "title": "塩と卵黄の3分の1",
+      "instruction": "塩と、次の卵黄の3分の1を入れてください。",
+      "typical_minutes": { "min": 21, "max": 30 },
+      "criteria": [
+        { "kind": "sight", "text": "だいたい混ざったら次へ", "visual_question": "卵黄が生地にだいたい混ざりましたか？", "evidence": [
+          { "run": "run2", "at_sec": 1320, "quote": "残り3分の1卵黄と塩を入れる" },
+          { "run": "run4", "at_sec": 1265, "quote": "もう3分の1。" }
+        ] }
+      ],
+      "branches": []
+    },
+    {
+      "id": "butter_yolk3",
+      "title": "バターと残りの卵黄",
+      "instruction": "指で押して潰れる硬さのバターを、生地をちぎって中に入れ、残りの卵黄も入れてください。",
+      "typical_minutes": { "min": 23, "max": 33 },
+      "criteria": [
+        { "kind": "touch", "text": "バターは指で押して潰れる硬さ", "evidence": [
+          { "run": "run2", "at_sec": 1507, "quote": "バターは指で押して潰れるぐらいの" }
+        ] }
+      ],
+      "branches": [
+        { "when": { "note": "バターが硬くて混ざらないとき" }, "instruction": "ミキサーだけに頼らず、手で潰しながら混ぜてください。", "evidence": [
+          { "run": "run4", "at_sec": 1581, "quote": "潰しながら混ぜる" }
+        ] }
+      ]
+    },
+    {
+      "id": "absorb",
+      "title": "滑らかになるまで吸収させる",
+      "instruction": "中低速を基本に、生地が滑らかになるまで吸収させてください。壁についたバターは、生地を切って中へ入れます。",
+      "typical_minutes": { "min": 26, "max": 44 },
+      "ask_dough_temp": true,
+      "criteria": [
+        { "kind": "sight", "text": "ツヤが出て、粗さがなくなる", "visual_question": "生地に粗さがなくツヤがありますか？", "evidence": [
+          { "run": "run2", "at_sec": 1755, "quote": "壁にくっついてしまうバターは" }
+        ] }
+      ],
+      "branches": [
+        { "when": { "dough_temp_max": 25 }, "instruction": "生地温度が低めなので、少し強めに混ぜてください。", "evidence": [
+          { "run": "run4", "at_sec": 1702, "quote": "生地の温度が低めなので" },
+          { "run": "run4", "at_sec": 1704, "quote": "ちょっと強めに混ぜます" }
+        ] },
+        { "when": { "note": "フックに生地がかかりにくいとき" }, "instruction": "途中で生地をひっくり返してください。何度かくり返すと効果的です。", "evidence": [
+          { "run": "run4", "at_sec": 1986, "quote": "何度もひっくり返すというのは有効だと思う" }
+        ] }
+      ]
+    },
+    {
+      "id": "adjust",
+      "title": "温度とつながりの調整",
+      "instruction": "生地温度を確認し、必要なら冷たい水を少しだけ入れてください。",
+      "typical_minutes": { "min": 34, "max": 44 },
+      "ask_dough_temp": true,
+      "criteria": [
+        { "kind": "touch", "text": "生地のつながりを確かめる", "evidence": [
+          { "run": "run4", "at_sec": 2062, "quote": "ちょっとだけ水を入れるよ" }
+        ] }
+      ],
+      "branches": [
+        { "when": { "dough_temp_min": 26.6 }, "instruction": "これ以上回せない温度です。冷たい水を少しだけ入れてください。", "evidence": [
+          { "run": "run1", "at_sec": 2451, "quote": "今の生地の温度は26.6" },
+          { "run": "run1", "at_sec": 2497, "quote": "少しだけ水を入れる" }
+        ] }
+      ]
+    },
+    {
+      "id": "fruit",
+      "title": "フルーツを入れる",
+      "instruction": "最後にフルーツを入れて、混ざるまで回してください。",
+      "typical_minutes": { "min": 37, "max": 47 },
+      "criteria": [
+        { "kind": "sight", "text": "フルーツが混ざったら完成", "visual_question": "フルーツが生地全体に混ざりましたか？", "evidence": [
+          { "run": "run1", "at_sec": 2817, "quote": "そしたら最後にフルーツを入れて" },
+          { "run": "run3", "at_sec": 2503, "quote": "フルーツを入れる。" }
+        ] }
+      ],
+      "branches": []
+    },
+    {
+      "id": "finish",
+      "title": "捏ね上げ",
+      "instruction": "捏ね上げ温度を測って記録してください。お疲れさまでした。",
+      "typical_minutes": { "min": 39, "max": 49 },
+      "ask_dough_temp": true,
+      "criteria": [
+        { "kind": "temperature", "text": "捏ね上げ温度を記録する", "evidence": [
+          { "run": "run2", "at_sec": 2827, "quote": "生地の温度25.5度" }
+        ] }
+      ],
+      "branches": []
+    }
+  ]
+}

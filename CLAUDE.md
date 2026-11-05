@@ -76,3 +76,9 @@ data/processed/   # A の出力 = B の入力
 - 文字起こしの原文はリポジトリに入れない。雑談や他の人の名前が含まれるため
 - data/processed/ に入れるのは作業に関する発言だけ。雑談は必ず除外する
 - 工程データを変えたら analyzer/validate.py で検査する
+
+## 工程データの更新
+
+- `analyzer/build_process.py` が語りから工程データを作る。`--base` を付けると既存のデータに新しい仕込みを反映する
+- 履歴は data/processed/versions/ に残す。B が読むのは data/processed/process.json
+- app/fixtures/process.json はテスト専用の固定データ

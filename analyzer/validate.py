@@ -36,21 +36,36 @@ def said(rows: list[dict], at_sec: float, quote: str) -> bool:
     return False
 
 
+def validate_schema(data: dict, schema: dict) -> None:
+    validate(data, schema)
+    for step in data["steps"]:
+        for criterion in step["criteria"]:
+            if criterion["kind"] == "sight" and not criterion.get("visual_question"):
+                raise ValueError(f"{step['id']}: sight の基準に visual_question がありません")
+
+
+def check_evidence(data: dict, rows_by_run: dict[str, list[dict]]) -> list[dict]:
+    return [
+        item
+        for item in evidences(data["steps"])
+        if item["run"] not in rows_by_run or not said(rows_by_run[item["run"]], item["at_sec"], item["quote"])
+    ]
+
+
 def main() -> int:
     data = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
     schema = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
-    validate(data, schema)
-    items = list(evidences(data["steps"]))
-    print(f"形式 OK: 工程 {len(data['steps'])} 件、根拠 {len(items)} 件")
+    validate_schema(data, schema)
+    total = len(list(evidences(data["steps"])))
+    print(f"形式 OK: 工程 {len(data['steps'])} 件、根拠 {total} 件")
     if len(sys.argv) < 4:
         return 0
     folders = sorted(p for p in Path(sys.argv[3]).iterdir() if p.is_dir())
-    runs = dict(zip(data["source_runs"], folders))
-    rows = {run: load_rows(folder) for run, folder in runs.items()}
-    missing = [e for e in items if not said(rows[e["run"]], e["at_sec"], e["quote"])]
-    for e in missing:
-        print("根拠が見つからない:", e)
-    print(f"根拠の実在: {len(items) - len(missing)}/{len(items)}")
+    rows = {f"run{i}": load_rows(folder) for i, folder in enumerate(folders, start=1)}
+    missing = check_evidence(data, rows)
+    for item in missing:
+        print("根拠が見つからない:", item)
+    print(f"根拠の実在: {total - len(missing)}/{total}")
     return 1 if missing else 0
 
 

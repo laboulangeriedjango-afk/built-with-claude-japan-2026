@@ -75,7 +75,7 @@
         "instruction": { "type": "string", "description": "表示し、読み上げる指示" },
         "typical_minutes": {
           "type": "object",
-          "description": "各仕込みでの開始からの時刻の範囲",
+          "description": "本捏ね開始からの分。min は最も早い開始、max は最も遅い終了",
           "required": ["min", "max"],
           "additionalProperties": false,
           "properties": {

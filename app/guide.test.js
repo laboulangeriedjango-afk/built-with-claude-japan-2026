@@ -15,7 +15,7 @@ import {
   timing,
 } from "./guide.js";
 
-const url = new URL("../data/processed/process.json", import.meta.url);
+const url = new URL("./fixtures/process.json", import.meta.url);
 const process = JSON.parse(readFileSync(url, "utf-8"));
 const step = (id) => process.steps.find((s) => s.id === id);
 
