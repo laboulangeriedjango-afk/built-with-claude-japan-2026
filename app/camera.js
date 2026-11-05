@@ -4,8 +4,9 @@ import { buildVisionRequest, readVisionResponse, sharpness } from "./vision.js";
 
 const KEY_STORAGE = "hongone-api-key";
 const FRAME_SIZE = 512;
-const BURST = 4;
-const BURST_GAP_MS = 300;
+const BURST = 6;
+const BURST_GAP_MS = 500;
+const SEND_FRAMES = 3;
 
 const referenceCache = new Map();
 let stream = null;
@@ -73,17 +74,17 @@ function grabFrame(video, canvas, context) {
   return { score: sharpness(gray, FRAME_SIZE, FRAME_SIZE), jpeg: canvas.toDataURL("image/jpeg", 0.8) };
 }
 
-// 回転中はぶれるので、連続で撮って最も鮮明な1枚を使う。
+// 回転中はぶれるので、連続で撮って鮮明な数枚を使う。
 async function captureSharpest(video) {
   const canvas = Object.assign(document.createElement("canvas"), { width: FRAME_SIZE, height: FRAME_SIZE });
   const context = canvas.getContext("2d", { willReadFrequently: true });
-  let best = null;
+  const frames = [];
   for (let i = 0; i < BURST; i += 1) {
-    const frame = grabFrame(video, canvas, context);
-    if (!best || frame.score > best.score) best = frame;
+    frames.push(grabFrame(video, canvas, context));
     await wait(BURST_GAP_MS);
   }
-  return best.jpeg.split(",")[1];
+  frames.sort((a, b) => b.score - a.score);
+  return frames.slice(0, SEND_FRAMES).map((frame) => frame.jpeg.split(",")[1]);
 }
 
 async function loadReference(reference) {
@@ -103,10 +104,10 @@ async function loadReference(reference) {
 
 export async function checkCriterion(video, stepTitle, criterion) {
   const client = new Anthropic({ apiKey: loadKey(), dangerouslyAllowBrowser: true });
-  const [currentImage, references] = await Promise.all([
+  const [currentImages, references] = await Promise.all([
     captureSharpest(video),
     Promise.all((criterion.reference_frames ?? []).map(loadReference)),
   ]);
-  const request = buildVisionRequest({ stepTitle, criterion, references, currentImage });
+  const request = buildVisionRequest({ stepTitle, criterion, references, currentImages });
   return readVisionResponse(await client.beta.messages.create(request));
 }

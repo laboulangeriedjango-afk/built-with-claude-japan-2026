@@ -1,5 +1,5 @@
 // 参考映像に使っていない仕込みのコマで、映像の確認が見分けられるかを測る。
-// 使い方: node analyzer/eval_vision.mjs <コマの親フォルダ（4回目）>
+// 使い方: node analyzer/eval_vision.mjs <eval_frames.py の出力フォルダ>
 // 正解は、4回目の語りの時刻から付けた仮のもの。
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -22,12 +22,11 @@ const CASES = [
   { step: "step6", match: "粗さ", sec: 1700, expected: "not_yet", why: "混ぜ始め" },
   { step: "step6", match: "粗さ", sec: 2190, expected: "met", why: "そろそろ終わりにすると発言" },
   { step: "step7", match: "フルーツ", sec: 2225, expected: "not_yet", why: "フルーツを入れた直後" },
-  { step: "step7", match: "フルーツ", sec: 2340, expected: "met", why: "仕上がりの直前" },
+  { step: "step7", match: "フルーツ", sec: 2300, expected: "met", why: "フルーツを入れて約1分半後" },
 ];
 
 const framesDir = process.argv[2];
 const b64 = (path) => readFileSync(path).toString("base64");
-const frameAt = (sec) => String(Math.round(sec / 5) + 1).padStart(5, "0");
 
 let hits = 0;
 let unclear = 0;
@@ -39,7 +38,7 @@ for (const item of CASES) {
     stepTitle: step.title,
     criterion,
     references,
-    currentImage: b64(join(framesDir, `${frameAt(item.sec)}.jpg`)),
+    currentImages: [0, 1, 2].map((i) => b64(join(framesDir, `${item.sec}_${i}.jpg`))),
   });
   const started = Date.now();
   const result = readVisionResponse(await client.beta.messages.create(request));

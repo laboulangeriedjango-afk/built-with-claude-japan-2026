@@ -1,4 +1,4 @@
-"""検証用に、アプリと同じ撮り方でコマを作る（0.3秒おきに4枚撮り、最も鮮明な1枚を残す）。
+"""検証用に、アプリと同じ撮り方でコマを作る（0.5秒おきに6枚撮り、鮮明な3枚を残す）。
 
 使い方: python eval_frames.py <動画> <出力フォルダ> <秒> [<秒> ...]
 """
@@ -11,11 +11,12 @@ import imageio_ffmpeg
 
 from build_refs import sharpness
 
-BURST = 4
-GAP_SEC = 0.3
+BURST = 6
+GAP_SEC = 0.5
+KEEP = 3
 
 
-def burst(video: Path, at_sec: float, folder: Path) -> Path:
+def burst(video: Path, at_sec: float, folder: Path) -> list[Path]:
     command = [
         imageio_ffmpeg.get_ffmpeg_exe(), "-hide_banner", "-loglevel", "error", "-y",
         "-ss", str(at_sec), "-i", str(video),
@@ -23,7 +24,7 @@ def burst(video: Path, at_sec: float, folder: Path) -> Path:
         str(folder / "%02d.jpg"),
     ]
     subprocess.run(command, check=True)
-    return max(folder.glob("*.jpg"), key=sharpness)
+    return sorted(folder.glob("*.jpg"), key=sharpness, reverse=True)[:KEEP]
 
 
 def main() -> None:
@@ -31,8 +32,8 @@ def main() -> None:
     out.mkdir(parents=True, exist_ok=True)
     for value in sys.argv[3:]:
         with tempfile.TemporaryDirectory() as temp:
-            best = burst(video, float(value), Path(temp))
-            (out / f"{value}.jpg").write_bytes(best.read_bytes())
+            for index, frame in enumerate(burst(video, float(value), Path(temp))):
+                (out / f"{value}_{index}.jpg").write_bytes(frame.read_bytes())
         print(value, flush=True)
 
 

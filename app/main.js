@@ -170,6 +170,7 @@ function cameraPanel(step) {
   const on = isCameraOn();
   return el("section", { className: "panel" },
     el("h2", { textContent: "カメラで確かめる" }),
+    el("p", { className: "muted", textContent: "結果は参考です。回転中の映像では、艶や滑らかさを見誤ることがあります。最後は手と目で確かめてください。" }),
     on ? video : null,
     vision.message ? el("p", { className: "muted", textContent: vision.message }) : null,
     el("ul", { className: "criteria" }, ...criteria.map((c) => {

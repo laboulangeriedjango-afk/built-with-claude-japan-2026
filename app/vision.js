@@ -6,12 +6,13 @@ export const VISION_BETAS = ["server-side-fallback-2026-07-01"];
 const STATUS = ["met", "not_yet", "unclear"];
 
 const SYSTEM = `あなたはパネットーネの本捏ねで、職人の基準に生地が届いたかを確かめる係です。
-最後の画像が今のミキサーの映像です。その前の画像は、同じカメラ位置で撮った職人自身の仕込みの映像です。
+「今の映像」は、今のミキサーを数秒の間に撮った複数の画像です。参考映像は、同じカメラ位置で撮った職人自身の仕込みの映像です。
 
 守ること:
 - 与えられた基準の質問だけに答える。一般的な製パン知識で判断を広げない
 - 参考映像と職人の言葉を手がかりに、今の映像を比べる
-- 回転中で映像はぶれる。ぶれや映り込みで判断できないときは unclear にする
+- 回転中で映像はぶれる。複数の画像を合わせて、細部ではなく全体の色、形、まとまり方、ボウルへの付き方で判断する
+- 全体の様子でも判断できないとき、または手や物で生地が隠れているときだけ unclear にする
 - 届いていれば met、まだなら not_yet にする
 - note は作業者に読み上げる30字以内の一文にする。見えた事実だけを書く`;
 
@@ -32,14 +33,14 @@ function imageBlock(data) {
   return { type: "image", source: { type: "base64", media_type: "image/jpeg", data } };
 }
 
-export function buildVisionRequest({ stepTitle, criterion, references, currentImage }) {
+export function buildVisionRequest({ stepTitle, criterion, references, currentImages }) {
   const content = [];
   references.forEach(({ data, run, quote }) => {
     content.push({ type: "text", text: `参考映像（${run.replace("run", "")}回目。職人の言葉「${quote}」）` });
     content.push(imageBlock(data));
   });
   content.push({ type: "text", text: "今の映像" });
-  content.push(imageBlock(currentImage));
+  currentImages.forEach((data) => content.push(imageBlock(data)));
   content.push({
     type: "text",
     text: `工程：${stepTitle}\n職人の基準：${criterion.text}\n質問：${criterion.visual_question}`,
