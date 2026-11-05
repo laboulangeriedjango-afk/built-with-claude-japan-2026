@@ -57,7 +57,7 @@ p { margin: 0; }
 
 .temp-row { display: flex; gap: 8px; }
 
-input[type="number"] {
+input[type="number"], input[type="password"] {
   flex: 1;
   min-width: 0;
   font-size: 1.4rem;
