@@ -2,3 +2,5 @@ imageio-ffmpeg
 faster-whisper
 jsonschema
 anthropic
+pillow
+numpy

@@ -107,6 +107,34 @@
           "items": {
             "$ref": "#/$defs/evidence"
           }
+        },
+        "reference_frames": {
+          "type": "array",
+          "description": "kind が sight のとき、語りの時点の参考映像",
+          "items": {
+            "type": "object",
+            "required": [
+              "path",
+              "run",
+              "at_sec",
+              "quote"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "run": {
+                "type": "string"
+              },
+              "at_sec": {
+                "type": "number"
+              },
+              "quote": {
+                "type": "string"
+              }
+            }
+          }
         }
       }
     },

@@ -98,3 +98,11 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); ou
   padding: 8px 0;
   background: var(--bg);
 }
+
+.preview { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; background: #000; margin-bottom: 8px; }
+.camera-actions { margin-top: 12px; }
+.camera-actions button { flex: 1; }
+.verdict { font-weight: 700; margin-top: 4px; }
+.verdict.met { color: var(--accent); }
+.verdict.not_yet { color: var(--text); }
+.verdict.unclear { color: var(--muted); }

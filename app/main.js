@@ -14,6 +14,8 @@ import {
   situationalBranches,
   timing,
 } from "./guide.js";
+import { checkCriterion, clearKey, isCameraOn, loadKey, saveKey, startCamera, stopCamera } from "./camera.js";
+import { sightCriteria } from "./vision.js";
 
 const STORAGE_KEY = "hongone-session";
 const root = document.getElementById("root");
@@ -26,6 +28,9 @@ const TIMING_LABEL = {
 let process;
 let session = null;
 let wakeLock = null;
+const CHECK_INTERVAL_MS = 30000;
+const video = Object.assign(document.createElement("video"), { muted: true, playsInline: true, className: "preview" });
+const vision = { results: new Map(), message: "", busy: false, cursor: 0, timer: null };
 
 function save() {
   try {
@@ -98,7 +103,97 @@ function finishLine(temp) {
   return el("p", { className: "muted", textContent: `捏ね上げの目標 ${target}℃との差：${sign}${diff}℃` });
 }
 
+const STATUS_LABEL = { met: "基準に届いています", not_yet: "まだです", unclear: "判断できません" };
+
+async function runCheck() {
+  if (vision.busy || !session || !isCameraOn()) return;
+  const step = currentStep(process, session);
+  const criteria = sightCriteria(step);
+  if (!criteria.length) return;
+  const criterion = criteria[vision.cursor % criteria.length];
+  vision.cursor += 1;
+  vision.busy = true;
+  vision.message = "確認しています…";
+  render();
+  try {
+    const result = await checkCriterion(video, step.title, criterion);
+    vision.message = "";
+    if (session && currentStep(process, session).id === step.id) {
+      const before = vision.results.get(criterion.text)?.status;
+      vision.results.set(criterion.text, result);
+      if (result.status === "met" && before !== "met") speak(result.note);
+    }
+  } catch (error) {
+    vision.message = error.status === 401 ? "API キーを確認してください" : `確認できませんでした：${error.message}`;
+  } finally {
+    vision.busy = false;
+    if (session) render();
+  }
+}
+
+async function toggleCamera() {
+  if (isCameraOn()) {
+    stopCamera(video);
+    clearInterval(vision.timer);
+    vision.message = "";
+    render();
+    return;
+  }
+  try {
+    await startCamera(video);
+    vision.timer = setInterval(runCheck, CHECK_INTERVAL_MS);
+    runCheck();
+  } catch (error) {
+    vision.message = `カメラを使えません：${error.message}`;
+    render();
+  }
+}
+
+function keyForm() {
+  const input = el("input", { type: "password", placeholder: "API キー", autocomplete: "off" });
+  input.setAttribute("aria-label", "Claude API キー");
+  return el("div", {},
+    el("p", { className: "muted", textContent: "カメラで確かめるには API キーが必要です。キーはこの端末にだけ保存します。カメラなしでも案内は使えます。" }),
+    el("div", { className: "temp-row" }, input, el("button", {
+      textContent: "保存",
+      onclick: () => {
+        if (input.value.trim() && saveKey(input.value)) render();
+      },
+    })),
+  );
+}
+
+function cameraPanel(step) {
+  const criteria = sightCriteria(step);
+  if (!criteria.length) return null;
+  if (!loadKey()) return el("section", { className: "panel" }, el("h2", { textContent: "カメラで確かめる" }), keyForm());
+  const on = isCameraOn();
+  return el("section", { className: "panel" },
+    el("h2", { textContent: "カメラで確かめる" }),
+    on ? video : null,
+    vision.message ? el("p", { className: "muted", textContent: vision.message }) : null,
+    el("ul", { className: "criteria" }, ...criteria.map((c) => {
+      const result = vision.results.get(c.text);
+      return el("li", {},
+        el("p", { textContent: c.visual_question }),
+        result ? el("p", { className: `verdict ${result.status}`, textContent: `${STATUS_LABEL[result.status]}：${result.note}` }) : null);
+    })),
+    el("div", { className: "temp-row camera-actions" },
+      el("button", { textContent: on ? "カメラを止める" : "カメラを開始", onclick: toggleCamera }),
+      on ? el("button", { textContent: "今すぐ確認", disabled: vision.busy, onclick: runCheck }) : null,
+      on ? null : el("button", { textContent: "キーを消す", onclick: () => { clearKey(); render(); } })),
+  );
+}
+
 function setSession(next, { announce = false } = {}) {
+  if (next?.stepIndex !== session?.stepIndex) {
+    vision.results.clear();
+    vision.cursor = 0;
+  }
+  if (!next && isCameraOn()) {
+    stopCamera(video);
+    clearInterval(vision.timer);
+  }
   session = next;
   save();
   render();
@@ -173,6 +268,7 @@ function renderStep() {
     ...alerts.map((b) => el("section", { className: "panel alert" },
       el("p", { textContent: b.instruction }), ...b.evidence.map(sourceLine))),
     step.ask_dough_temp ? tempPanel(step) : null,
+    cameraPanel(step),
     el("section", { className: "panel" },
       el("h2", { textContent: "次へ進む基準" }),
       el("ul", { className: "criteria" }, ...step.criteria.map((c) =>

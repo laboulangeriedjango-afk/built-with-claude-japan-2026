@@ -78,6 +78,7 @@ def format_run(name: str, rows: list[dict]) -> str:
 def output_schema() -> dict:
     schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
     schema["properties"].pop("principles")
+    schema["$defs"]["criterion"]["properties"].pop("reference_frames")
     schema["properties"].pop("limits")
     return {key: value for key, value in schema.items() if key not in ("$schema", "title")}
 

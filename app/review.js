@@ -46,12 +46,23 @@ function item({ isNew, children }) {
   return el("div", { className: isNew ? "item new" : "item" }, badge, ...children);
 }
 
+function referenceRow(c) {
+  if (!c.reference_frames?.length) return null;
+  return el("div", { className: "refs" }, ...c.reference_frames.map((r) => {
+    const label = `${r.run.replace("run", "")}回目 ${formatClock(r.at_sec * 1000)}「${r.quote}」`;
+    return el("figure", {},
+      el("img", { src: `../data/processed/${r.path}`, alt: label, loading: "lazy" }),
+      el("figcaption", { textContent: label }));
+  }));
+}
+
 function criterionItem(c, known) {
   return item({
     isNew: known !== null && !known.has(c.text),
     children: [
       el("p", {}, el("span", { className: "kind", textContent: `${KIND[c.kind]}　` }), c.text),
       c.visual_question ? el("p", { className: "question", textContent: `映像への質問：${c.visual_question}` }) : null,
+      referenceRow(c),
       evidenceList(c.evidence),
     ],
   });

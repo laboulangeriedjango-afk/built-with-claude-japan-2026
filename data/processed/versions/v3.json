@@ -74,6 +74,20 @@
               "at_sec": 78,
               "quote": "粉を入れる。"
             }
+          ],
+          "reference_frames": [
+            {
+              "path": "refs/run2_54.jpg",
+              "run": "run2",
+              "at_sec": 54,
+              "quote": "生地が少しほぐれたら粉を入れる。"
+            },
+            {
+              "path": "refs/run1_59.jpg",
+              "run": "run1",
+              "at_sec": 59,
+              "quote": "粉全形を入れました。"
+            }
           ]
         }
       ],
@@ -108,6 +122,20 @@
               "run": "run3",
               "at_sec": 808,
               "quote": "だいぶツヤが出てきた。"
+            }
+          ],
+          "reference_frames": [
+            {
+              "path": "refs/run1_1138.jpg",
+              "run": "run1",
+              "at_sec": 1138,
+              "quote": "目安は生地の表面が細かく滑らかになるまで"
+            },
+            {
+              "path": "refs/run2_1115.jpg",
+              "run": "run2",
+              "at_sec": 1115,
+              "quote": "面がツルッとしてきたので"
             }
           ]
         },
@@ -244,6 +272,20 @@
               "at_sec": 899,
               "quote": "次"
             }
+          ],
+          "reference_frames": [
+            {
+              "path": "refs/run1_1789.jpg",
+              "run": "run1",
+              "at_sec": 1789,
+              "quote": "だいたい混ざったら次塩と卵黄3分の1位。"
+            },
+            {
+              "path": "refs/run2_1169.jpg",
+              "run": "run2",
+              "at_sec": 1169,
+              "quote": "状態で次へ行く"
+            }
           ]
         }
       ],
@@ -277,6 +319,20 @@
               "run": "run4",
               "at_sec": 1265,
               "quote": "3分の1。"
+            }
+          ],
+          "reference_frames": [
+            {
+              "path": "refs/run1_1902.jpg",
+              "run": "run1",
+              "at_sec": 1902,
+              "quote": "これもだいたい混ざったら"
+            },
+            {
+              "path": "refs/run2_1492.jpg",
+              "run": "run2",
+              "at_sec": 1492,
+              "quote": "これで次バターと最後の3分の1の卵を入れる"
             }
           ]
         }
@@ -338,6 +394,20 @@
               "at_sec": 1499,
               "quote": "残りの卵黄も入れるよ。"
             }
+          ],
+          "reference_frames": [
+            {
+              "path": "refs/run1_1930.jpg",
+              "run": "run1",
+              "at_sec": 1930,
+              "quote": "生地をちぎってバターを中に入れます。"
+            },
+            {
+              "path": "refs/run2_1749.jpg",
+              "run": "run2",
+              "at_sec": 1749,
+              "quote": "壁にくっついてしまうバターは"
+            }
           ]
         },
         {
@@ -355,7 +425,8 @@
               "at_sec": 1630,
               "quote": "あとはミキサーで混ぜるよ"
             }
-          ]
+          ],
+          "reference_frames": []
         }
       ],
       "branches": [
@@ -418,6 +489,20 @@
               "run": "run1",
               "at_sec": 2617,
               "quote": "っきよりは艶が出てきた"
+            }
+          ],
+          "reference_frames": [
+            {
+              "path": "refs/run1_2123.jpg",
+              "run": "run1",
+              "at_sec": 2123,
+              "quote": "ここで生地が滑らかになるまでしっかり緩めています。"
+            },
+            {
+              "path": "refs/run1_2427.jpg",
+              "run": "run1",
+              "at_sec": 2427,
+              "quote": "まだちょっと粗い。"
             }
           ]
         },
@@ -703,6 +788,20 @@
               "run": "run4",
               "at_sec": 2219,
               "quote": "ルーツを入れるよ"
+            }
+          ],
+          "reference_frames": [
+            {
+              "path": "refs/run1_2817.jpg",
+              "run": "run1",
+              "at_sec": 2817,
+              "quote": "そしたら最後にフルーツを入れて"
+            },
+            {
+              "path": "refs/run2_2741.jpg",
+              "run": "run2",
+              "at_sec": 2741,
+              "quote": "ブーツを入れる。"
             }
           ]
         },
