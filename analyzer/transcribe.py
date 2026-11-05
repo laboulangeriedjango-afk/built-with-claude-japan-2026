@@ -1,7 +1,7 @@
 """audio.wav を文字起こしし、セグメントごとに transcript.jsonl へ追記する。
 
 途中で止めても、再実行すると続きから処理する。
-使い方: python transcribe.py <出力フォルダ> [--model small] [--vad-threshold 0.5] [--name transcript]
+使い方: python transcribe.py <出力フォルダ> [--model small] [--vad-threshold 0.2] [--name transcript]
 """
 import argparse
 import json
@@ -66,7 +66,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("out", type=Path)
     parser.add_argument("--model", default="small")
-    parser.add_argument("--vad-threshold", type=float, default=0.5, help="小さいほどミキサー音の中の声を拾う")
+    parser.add_argument("--vad-threshold", type=float, default=0.2, help="小さいほどミキサー音の中の声を拾う")
     parser.add_argument("--name", default="transcript", help="出力ファイル名")
     args = parser.parse_args()
     model = WhisperModel(args.model, device="cpu", compute_type="int8", cpu_threads=4)

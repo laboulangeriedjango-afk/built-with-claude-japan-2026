@@ -1,0 +1,58 @@
+"""工程データを形式に照らして検査し、根拠の発言が文字起こしに実在するか確かめる。
+
+使い方: python validate.py <工程データ> <スキーマ> [文字起こしの親フォルダ]
+文字起こしは公開しないので、親フォルダを省くと実在の検査は飛ばす。
+"""
+import json
+import sys
+from pathlib import Path
+
+from jsonschema import validate
+
+TOLERANCE_SEC = 15
+
+
+def evidences(node):
+    if isinstance(node, dict):
+        if {"run", "at_sec", "quote"} <= node.keys():
+            yield node
+        for value in node.values():
+            yield from evidences(value)
+    elif isinstance(node, list):
+        for value in node:
+            yield from evidences(value)
+
+
+def load_rows(folder: Path) -> list[dict]:
+    lines = (folder / "transcript_loose.jsonl").read_text(encoding="utf-8").splitlines()
+    return [json.loads(line) for line in lines]
+
+
+def said(rows: list[dict], at_sec: float, quote: str) -> bool:
+    for row in rows:
+        near = row["start"] - TOLERANCE_SEC <= at_sec <= row["end"] + TOLERANCE_SEC
+        if near and quote in row["text"]:
+            return True
+    return False
+
+
+def main() -> int:
+    data = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+    schema = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+    validate(data, schema)
+    items = list(evidences(data["steps"]))
+    print(f"形式 OK: 工程 {len(data['steps'])} 件、根拠 {len(items)} 件")
+    if len(sys.argv) < 4:
+        return 0
+    folders = sorted(p for p in Path(sys.argv[3]).iterdir() if p.is_dir())
+    runs = dict(zip(data["source_runs"], folders))
+    rows = {run: load_rows(folder) for run, folder in runs.items()}
+    missing = [e for e in items if not said(rows[e["run"]], e["at_sec"], e["quote"])]
+    for e in missing:
+        print("根拠が見つからない:", e)
+    print(f"根拠の実在: {len(items) - len(missing)}/{len(items)}")
+    return 1 if missing else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
