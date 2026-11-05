@@ -52,6 +52,9 @@ p { margin: 0; }
 
 .source { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
 
+.principles summary { cursor: pointer; font-weight: 700; min-height: 32px; }
+.principles ul { margin-top: 8px; }
+
 .temp-row { display: flex; gap: 8px; }
 
 input[type="number"] {

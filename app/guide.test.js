@@ -6,8 +6,10 @@ import {
   back,
   createSession,
   currentStep,
+  finishDifference,
   formatClock,
   isFinished,
+  isOverLimit,
   latestTemp,
   matchingTempBranches,
   recordTemp,
@@ -68,4 +70,23 @@ test("語りの時間帯と比べて早い・遅いを判定する", () => {
 
 test("経過時間を分と秒で表示する", () => {
   assert.equal(formatClock(125000), "02:05");
+});
+
+const ruled = { limits: { dough_temp_below: 27, finish_temp_target: 26 } };
+
+test("26度台までは上限内で、27℃から上限を超える", () => {
+  assert.equal(isOverLimit(ruled, 26.9), false);
+  assert.equal(isOverLimit(ruled, 27), true);
+  assert.equal(isOverLimit(ruled, null), false);
+});
+
+test("決まりのないデータでは上限の判定をしない", () => {
+  assert.equal(isOverLimit({}, 30), false);
+  assert.equal(finishDifference({}, 25), null);
+});
+
+test("捏ね上げ温度と目標の差を出す", () => {
+  assert.equal(finishDifference(ruled, 25.7), -0.3);
+  assert.equal(finishDifference(ruled, 26), 0);
+  assert.equal(finishDifference(ruled, null), null);
 });

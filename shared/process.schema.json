@@ -2,90 +2,205 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "本捏ねの工程データ（A の出力 = B の入力）",
   "type": "object",
-  "required": ["version", "source_runs", "steps"],
+  "required": [
+    "version",
+    "source_runs",
+    "steps"
+  ],
   "additionalProperties": false,
   "properties": {
-    "version": { "type": "integer", "description": "A で仕込みを追加するたびに増える" },
+    "version": {
+      "type": "integer",
+      "description": "A で仕込みを追加するたびに増える"
+    },
     "source_runs": {
       "type": "array",
       "description": "採集に使った仕込み",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
     "steps": {
       "type": "array",
-      "items": { "$ref": "#/$defs/step" }
+      "items": {
+        "$ref": "#/$defs/step"
+      }
+    },
+    "principles": {
+      "type": "array",
+      "description": "職人が定めた、全工程に通じる決まり",
+      "items": {
+        "type": "string"
+      }
+    },
+    "limits": {
+      "type": "object",
+      "description": "職人が定めた温度の決まり",
+      "required": [
+        "dough_temp_below",
+        "finish_temp_target"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "dough_temp_below": {
+          "type": "number",
+          "description": "生地温度をこの値より低く保つ"
+        },
+        "finish_temp_target": {
+          "type": "number",
+          "description": "捏ね上げ温度の目標"
+        }
+      }
     }
   },
   "$defs": {
     "evidence": {
       "type": "object",
       "description": "根拠となった発言",
-      "required": ["run", "at_sec", "quote"],
+      "required": [
+        "run",
+        "at_sec",
+        "quote"
+      ],
       "additionalProperties": false,
       "properties": {
-        "run": { "type": "string" },
-        "at_sec": { "type": "number" },
-        "quote": { "type": "string" }
+        "run": {
+          "type": "string"
+        },
+        "at_sec": {
+          "type": "number"
+        },
+        "quote": {
+          "type": "string"
+        }
       }
     },
     "criterion": {
       "type": "object",
       "description": "次の工程へ進む基準",
-      "required": ["kind", "text", "evidence"],
+      "required": [
+        "kind",
+        "text",
+        "evidence"
+      ],
       "additionalProperties": false,
       "properties": {
         "kind": {
-          "enum": ["time", "temperature", "sight", "touch"],
+          "enum": [
+            "time",
+            "temperature",
+            "sight",
+            "touch"
+          ],
           "description": "sight だけが映像の確認を使う。touch は利用者が手で確かめて答える"
         },
-        "text": { "type": "string", "description": "語りに基づく基準" },
+        "text": {
+          "type": "string",
+          "description": "語りに基づく基準"
+        },
         "visual_question": {
           "type": "string",
           "description": "kind が sight のとき、現在の工程で映像に問う質問"
         },
-        "evidence": { "type": "array", "items": { "$ref": "#/$defs/evidence" } }
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        }
       }
     },
     "branch": {
       "type": "object",
       "description": "温度などの状況に応じた判断",
-      "required": ["when", "instruction", "evidence"],
+      "required": [
+        "when",
+        "instruction",
+        "evidence"
+      ],
       "additionalProperties": false,
       "properties": {
         "when": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "dough_temp_min": { "type": "number" },
-            "dough_temp_max": { "type": "number" },
-            "note": { "type": "string" }
+            "dough_temp_min": {
+              "type": "number"
+            },
+            "dough_temp_max": {
+              "type": "number"
+            },
+            "note": {
+              "type": "string"
+            }
           }
         },
-        "instruction": { "type": "string" },
-        "evidence": { "type": "array", "items": { "$ref": "#/$defs/evidence" } }
+        "instruction": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        }
       }
     },
     "step": {
       "type": "object",
-      "required": ["id", "title", "instruction", "typical_minutes", "criteria", "branches"],
+      "required": [
+        "id",
+        "title",
+        "instruction",
+        "typical_minutes",
+        "criteria",
+        "branches"
+      ],
       "additionalProperties": false,
       "properties": {
-        "id": { "type": "string" },
-        "title": { "type": "string" },
-        "instruction": { "type": "string", "description": "表示し、読み上げる指示" },
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "instruction": {
+          "type": "string",
+          "description": "表示し、読み上げる指示"
+        },
         "typical_minutes": {
           "type": "object",
           "description": "本捏ね開始からの分。min は最も早い開始、max は最も遅い終了",
-          "required": ["min", "max"],
+          "required": [
+            "min",
+            "max"
+          ],
           "additionalProperties": false,
           "properties": {
-            "min": { "type": "number" },
-            "max": { "type": "number" }
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            }
           }
         },
-        "ask_dough_temp": { "type": "boolean", "description": "この工程で温度の入力を求める" },
-        "criteria": { "type": "array", "items": { "$ref": "#/$defs/criterion" } },
-        "branches": { "type": "array", "items": { "$ref": "#/$defs/branch" } }
+        "ask_dough_temp": {
+          "type": "boolean",
+          "description": "この工程で温度の入力を求める"
+        },
+        "criteria": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/criterion"
+          }
+        },
+        "branches": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/branch"
+          }
+        }
       }
     }
   }

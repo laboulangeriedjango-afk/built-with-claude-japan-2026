@@ -49,6 +49,19 @@ export function situationalBranches(step) {
   );
 }
 
+// 職人が定めた上限に届いた温度かどうか。上限のないデータでは常に false。
+export function isOverLimit(process, temp) {
+  const limit = process.limits?.dough_temp_below;
+  return temp !== null && limit !== undefined && temp >= limit;
+}
+
+// 捏ね上げ温度の目標との差。目標のないデータや未入力では null。
+export function finishDifference(process, temp) {
+  const target = process.limits?.finish_temp_target;
+  if (temp === null || target === undefined) return null;
+  return Math.round((temp - target) * 10) / 10;
+}
+
 export function elapsedMinutes(session, now) {
   return (now - session.startedAt) / 60000;
 }

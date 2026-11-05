@@ -4,8 +4,10 @@ import {
   createSession,
   currentStep,
   elapsedMinutes,
+  finishDifference,
   formatClock,
   isFinished,
+  isOverLimit,
   latestTemp,
   matchingTempBranches,
   recordTemp,
@@ -71,6 +73,31 @@ function sourceLine(evidence) {
   return el("p", { className: "source", textContent: `${label}「${quote}」` });
 }
 
+function evidenceDetails(evidence) {
+  return el("details", { className: "source" },
+    el("summary", { textContent: `根拠の発言 ${evidence.length}件` }), ...evidence.map(sourceLine));
+}
+
+function principlesPanel() {
+  if (!process.principles?.length) return null;
+  return el("details", { className: "panel principles" },
+    el("summary", { textContent: "全体の決まり" }),
+    el("ul", { className: "notes" }, ...process.principles.map((text) => el("li", { textContent: text }))));
+}
+
+function limitAlert() {
+  const text = `生地の温度は${process.limits.dough_temp_below - 1}度台までに抑えます。これ以上上げないようにしてください。`;
+  return { text, node: el("section", { className: "panel alert" }, el("p", { textContent: text })) };
+}
+
+function finishLine(temp) {
+  const diff = finishDifference(process, temp);
+  if (diff === null) return null;
+  const sign = diff > 0 ? "+" : "";
+  const target = process.limits.finish_temp_target;
+  return el("p", { className: "muted", textContent: `捏ね上げの目標 ${target}℃との差：${sign}${diff}℃` });
+}
+
 function setSession(next, { announce = false } = {}) {
   session = next;
   save();
@@ -79,12 +106,13 @@ function setSession(next, { announce = false } = {}) {
 }
 
 function renderStart() {
-  root.replaceChildren(
+  const sections = [
     el("h1", { textContent: "パネットーネの本捏ね" }),
     el("p", {
       className: "instruction",
       textContent: `${process.source_runs.length}回の仕込みの語りをもとに、次にすることを案内します。`,
     }),
+    principlesPanel(),
     el("div", { className: "actions" }, el("button", {
       className: "primary",
       textContent: "本捏ねを始める",
@@ -93,7 +121,8 @@ function renderStart() {
         setSession(createSession(process, Date.now()), { announce: true });
       },
     })),
-  );
+  ];
+  root.replaceChildren(...sections.filter((section) => section !== null));
 }
 
 function tempPanel(step) {
@@ -111,7 +140,8 @@ function tempPanel(step) {
     if (Number.isNaN(temp)) return;
     setSession(recordTemp(session, step.id, temp, Date.now()));
     const [branch] = matchingTempBranches(step, temp);
-    if (branch) speak(branch.instruction);
+    if (isOverLimit(process, temp)) speak(limitAlert().text);
+    else if (branch) speak(branch.instruction);
   };
   return el("section", { className: "panel" },
     el("h2", { textContent: "生地温度（℃）" }),
@@ -138,19 +168,22 @@ function renderStep() {
       id: "timing",
       textContent: `目安 ${step.typical_minutes.min}〜${step.typical_minutes.max}分。${TIMING_LABEL[timing(step, minutes)]}`,
     }),
+    isOverLimit(process, temp) ? limitAlert().node : null,
+    isFinished(process, session) ? finishLine(temp) : null,
     ...alerts.map((b) => el("section", { className: "panel alert" },
       el("p", { textContent: b.instruction }), ...b.evidence.map(sourceLine))),
     step.ask_dough_temp ? tempPanel(step) : null,
     el("section", { className: "panel" },
       el("h2", { textContent: "次へ進む基準" }),
       el("ul", { className: "criteria" }, ...step.criteria.map((c) =>
-        el("li", {}, el("p", { textContent: c.text }), ...c.evidence.map(sourceLine)))),
+        el("li", {}, el("p", { textContent: c.text }), evidenceDetails(c.evidence)))),
     ),
     notes.length ? el("section", { className: "panel" },
       el("h2", { textContent: "こんなときは" }),
       el("ul", { className: "notes" }, ...notes.map((b) =>
-        el("li", {}, el("p", { textContent: `${b.when.note}：${b.instruction}` }), ...b.evidence.map(sourceLine)))),
+        el("li", {}, el("p", { textContent: `${b.when.note}：${b.instruction}` }), evidenceDetails(b.evidence)))),
     ) : null,
+    principlesPanel(),
     el("div", { className: "actions" },
       el("button", { textContent: "戻る", onclick: () => setSession(back(session, Date.now())) }),
       el("button", { textContent: "読み上げ", onclick: () => speak(step.instruction) }),

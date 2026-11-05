@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SCHEMA_PATH = ROOT / "shared" / "process.schema.json"
 GLOSSARY_PATH = Path(__file__).resolve().parent / "glossary.json"
 CORRECTIONS_PATH = Path(__file__).resolve().parent / "corrections.json"
+CRAFT_RULES_PATH = Path(__file__).resolve().parent / "craft_rules.json"
 MODEL = "claude-opus-5-5"
 SPLIT_GAP_SEC = 5
 PRICE_PER_MTOK = {"input": 4.0, "output": 20.0}
@@ -76,15 +77,19 @@ def format_run(name: str, rows: list[dict]) -> str:
 
 def output_schema() -> dict:
     schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+    schema["properties"].pop("principles")
+    schema["properties"].pop("limits")
     return {key: value for key, value in schema.items() if key not in ("$schema", "title")}
 
 
-def build_prompt(runs: dict[str, list[dict]], base: dict | None, glossary: dict, corrections: list[dict]) -> str:
+def build_prompt(runs: dict[str, list[dict]], base: dict | None, glossary: dict, corrections: list[dict], rules: dict) -> str:
     parts = [
         "用語集（文字起こしの誤認識 → 正しい語）:",
         json.dumps(glossary, ensure_ascii=False, indent=2),
         "職人の修正:",
         json.dumps(corrections, ensure_ascii=False, indent=2),
+        "職人の決まり（工程の指示もこれに合わせる）:",
+        json.dumps(rules, ensure_ascii=False, indent=2),
     ]
     if base:
         parts += [
@@ -144,7 +149,10 @@ def main() -> int:
     glossary = json.loads(GLOSSARY_PATH.read_text(encoding="utf-8"))
     corrections = json.loads(CORRECTIONS_PATH.read_text(encoding="utf-8"))
 
-    data = generate(build_prompt(runs, base, glossary, corrections))
+    rules = json.loads(CRAFT_RULES_PATH.read_text(encoding="utf-8"))
+
+    data = generate(build_prompt(runs, base, glossary, corrections, rules))
+    data.update(rules)
     draft = args.output.with_suffix(".draft.json")
     draft.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 

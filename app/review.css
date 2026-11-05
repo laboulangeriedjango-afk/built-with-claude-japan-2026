@@ -13,6 +13,7 @@ main.review { max-width: 760px; }
 .item.new { border-left: 4px solid var(--accent); border-top: 0; padding: 8px 0 8px 12px; }
 
 .badge {
+  justify-self: start;
   display: inline-block;
   font-size: 0.75rem;
   font-weight: 700;

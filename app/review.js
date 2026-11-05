@@ -80,6 +80,14 @@ function stepPanel(step, index, known) {
   );
 }
 
+function rulesPanel(process, previous) {
+  if (!process.principles?.length) return null;
+  const known = new Set(previous?.principles ?? []);
+  return el("section", { className: "panel step" },
+    el("h2", { textContent: "職人が定めた全体の決まり" }),
+    ...process.principles.map((text) => item({ isNew: !known.has(text), children: [el("p", { textContent: text })] })));
+}
+
 function render(versions, index) {
   const process = versions[index];
   const known = index > 0 ? knownTexts(versions[index - 1]) : null;
@@ -87,7 +95,7 @@ function render(versions, index) {
   const branchCount = steps.reduce((sum, s) => sum + s.branches.length, 0);
   const tabs = versions.map((v, i) => {
     const button = el("button", {
-      textContent: `v${v.version}（${v.source_runs.length}回分）`,
+      textContent: `v${v.version}（${v.source_runs.length}回分${v.principles?.length ? "＋職人の確認" : ""}）`,
       onclick: () => render(versions, i),
     });
     button.setAttribute("aria-pressed", String(i === index));
@@ -100,6 +108,7 @@ function render(versions, index) {
       textContent: `v${process.version}：${process.source_runs.length}回の仕込みから、工程 ${steps.length}件、判断 ${branchCount}件`,
     }),
     el("div", { className: "tabs" }, ...tabs),
+    rulesPanel(process, versions[index - 1]),
     ...steps.map((step, i) => stepPanel(step, i, known)),
   );
 }
