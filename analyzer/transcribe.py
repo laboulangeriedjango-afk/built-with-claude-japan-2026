@@ -1,7 +1,7 @@
 """audio.wav を文字起こしし、セグメントごとに transcript.jsonl へ追記する。
 
 途中で止めても、再実行すると続きから処理する。
-使い方: python transcribe.py <出力フォルダ> [--model small]
+使い方: python transcribe.py <出力フォルダ> [--model small] [--vad-threshold 0.5] [--name transcript]
 """
 import argparse
 import json
@@ -24,9 +24,9 @@ def read_wav(path: Path, start: float) -> np.ndarray:
     return np.frombuffer(pcm, dtype=np.int16).astype(np.float32) / 32768.0
 
 
-def transcribe(model: WhisperModel, folder: Path) -> None:
-    path = folder / "transcript.jsonl"
-    done = folder / "transcript.done"
+def transcribe(model: WhisperModel, folder: Path, name: str, vad_threshold: float) -> None:
+    path = folder / f"{name}.jsonl"
+    done = folder / f"{name}.done"
     if done.exists():
         return
     start = 0.0
@@ -39,6 +39,7 @@ def transcribe(model: WhisperModel, folder: Path) -> None:
         language="ja",
         initial_prompt=PROMPT,
         vad_filter=True,
+        vad_parameters={"threshold": vad_threshold},
         condition_on_previous_text=False,
         word_timestamps=True,
     )
@@ -65,10 +66,12 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("out", type=Path)
     parser.add_argument("--model", default="small")
+    parser.add_argument("--vad-threshold", type=float, default=0.5, help="小さいほどミキサー音の中の声を拾う")
+    parser.add_argument("--name", default="transcript", help="出力ファイル名")
     args = parser.parse_args()
     model = WhisperModel(args.model, device="cpu", compute_type="int8", cpu_threads=4)
     for folder in sorted(p for p in args.out.iterdir() if (p / "audio.wav").exists()):
-        transcribe(model, folder)
+        transcribe(model, folder, args.name, args.vad_threshold)
 
 
 if __name__ == "__main__":
