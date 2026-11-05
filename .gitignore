@@ -1,0 +1,35 @@
+# 秘密情報
+.env
+.env.*
+!.env.example
+
+# 動画の原本はコミットしない（GitHub の容量制限のため）
+*.mp4
+*.mov
+*.mkv
+*.avi
+*.webm
+# 公開用の短いクリップだけ data/samples/ に許可する
+!data/samples/*.mp4
+!data/samples/*.webm
+
+# 解析の中間生成物
+work/
+*.wav
+*.m4a
+*.aac
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+dist/
+.wrangler/
+
+# OS / エディタ
+.DS_Store
+Thumbs.db
+.vscode/
