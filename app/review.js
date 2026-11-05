@@ -26,16 +26,21 @@ function whenLabel(when) {
   return [...range, when.note].filter(Boolean).join("、");
 }
 
+function branchKey(b) {
+  return `${whenLabel(b.when)}：${b.instruction}`;
+}
+
 function knownTexts(process) {
   const texts = new Set();
   for (const step of process?.steps ?? []) {
     for (const c of step.criteria) texts.add(c.text);
-    for (const b of step.branches) texts.add(b.instruction);
+    for (const b of step.branches) texts.add(branchKey(b));
   }
   return texts;
 }
 
 function evidenceList(evidence) {
+  if (!evidence.length) return el("p", { className: "muted", textContent: "職人の確認による内容" });
   const lines = evidence.map(({ run, at_sec: sec, quote }) =>
     el("p", { textContent: `${run.replace("run", "")}回目 ${formatClock(sec * 1000)}「${quote}」` }));
   return el("details", {}, el("summary", { textContent: `根拠の発言 ${evidence.length}件` }), ...lines);
@@ -71,7 +76,7 @@ function criterionItem(c, known) {
 
 function branchItem(b, known) {
   return item({
-    isNew: known !== null && !known.has(b.instruction),
+    isNew: known !== null && !known.has(branchKey(b)),
     children: [
       el("p", { textContent: `${whenLabel(b.when)} → ${b.instruction}` }),
       evidenceList(b.evidence),
@@ -79,11 +84,18 @@ function branchItem(b, known) {
   });
 }
 
+// v4 までは本捏ね開始からの時間帯、v5 からは工程の所要時間を持つ。
+function timeLabel(step) {
+  if (step.typical_minutes) return `語りでの時間帯 ${step.typical_minutes.min}〜${step.typical_minutes.max}分`;
+  if (!step.duration_minutes) return step.time_note ?? "時間の目安なし";
+  const { min, max } = step.duration_minutes;
+  return `目安 ${min === max ? `${min}分程度` : `${min}〜${max}分`}。${step.time_note ?? ""}`;
+}
+
 function stepPanel(step, index, known) {
-  const { min, max } = step.typical_minutes;
   return el("section", { className: "panel step" },
     el("h2", { textContent: `${index + 1}. ${step.title}` }),
-    el("p", { className: "muted", textContent: `語りでの時間帯 ${min}〜${max}分${step.ask_dough_temp ? "　温度を入力" : ""}` }),
+    el("p", { className: "muted", textContent: `${timeLabel(step)}${step.ask_dough_temp ? "　温度を入力" : ""}` }),
     el("p", { textContent: step.instruction }),
     el("h3", { textContent: "次へ進む基準" }),
     ...step.criteria.map((c) => criterionItem(c, known)),
@@ -110,6 +122,7 @@ function rescueSection(process, previous) {
     el("h3", { textContent: "危険のサイン" }),
     ...signs.map((text) => item({ isNew, children: [el("p", { textContent: text })] })),
     el("p", { className: "muted", textContent: action }),
+    process.rescue.check_habit ? el("p", { className: "muted", textContent: process.rescue.check_habit }) : null,
     el("h3", { textContent: `${warn}℃以上での対処（順に試す）` }),
     ...actions.map((a, i) => item({
       isNew,
@@ -124,7 +137,7 @@ function render(versions, index) {
   const branchCount = steps.reduce((sum, s) => sum + s.branches.length, 0);
   const tabs = versions.map((v, i) => {
     const button = el("button", {
-      textContent: `v${v.version}（${v.source_runs.length}回分${v.rescue ? "＋失敗の知見" : v.principles?.length ? "＋職人の確認" : ""}）`,
+      textContent: `v${v.version}（${v.source_runs.length}回分${v.steps[0].typical_minutes ? (v.rescue ? "＋失敗の知見" : v.principles?.length ? "＋職人の確認" : "") : "＋職人の工程修正"}）`,
       onclick: () => render(versions, i),
     });
     button.setAttribute("aria-pressed", String(i === index));

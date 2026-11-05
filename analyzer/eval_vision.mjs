@@ -19,10 +19,10 @@ const CASES = [
   { step: "step2", match: "表面", frame: 179, expected: "not_yet", why: "14:50 まだ次へ進まない時点" },
   { step: "step2", match: "表面", frame: 218, expected: "met", why: "18:05 次へ進むと発言した直後" },
   { step: "step5", match: "塊", frame: 305, expected: "not_yet", why: "25:20 バターの粒が見える" },
-  { step: "step6", match: "粗さ", frame: 305, expected: "not_yet", why: "25:20 バターを入れている最中" },
-  { step: "step6", match: "粗さ", frame: 448, expected: "met", why: "37:15 引っ張るとついてくると発言" },
-  { step: "step7", match: "フルーツ", frame: 448, expected: "not_yet", why: "37:15 フルーツを入れた直後" },
-  { step: "step7", match: "フルーツ", frame: 468, expected: "met", why: "38:50 捏ね上げの直前" },
+  { step: "step5", match: "粗さ", frame: 305, expected: "not_yet", why: "25:20 バターを入れている最中" },
+  { step: "step5", match: "粗さ", frame: 448, expected: "met", why: "37:15 引っ張るとついてくると発言" },
+  { step: "step6", match: "フルーツ", frame: 448, expected: "not_yet", why: "37:15 フルーツを入れた直後" },
+  { step: "step6", match: "フルーツ", frame: 468, expected: "met", why: "38:50 捏ね上げの直前" },
 ];
 
 const framesDir = process.argv[2];

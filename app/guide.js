@@ -68,13 +68,14 @@ export function finishDifference(process, temp) {
   return Math.round((temp - target) * 10) / 10;
 }
 
-export function elapsedMinutes(session, now) {
-  return (now - session.startedAt) / 60000;
+export function stepMinutes(session, now) {
+  return (now - session.stepStartedAt) / 60000;
 }
 
-// 語りから得た時間帯と比べた現在の位置。
+// この工程の所要時間の目安と比べた現在の位置。目安のない工程では null。
 export function timing(step, minutes) {
-  const { min, max } = step.typical_minutes;
+  if (!step.duration_minutes) return null;
+  const { min, max } = step.duration_minutes;
   if (minutes < min) return "early";
   if (minutes > max) return "late";
   return "typical";

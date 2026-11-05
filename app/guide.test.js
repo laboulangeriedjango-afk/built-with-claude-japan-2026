@@ -15,6 +15,7 @@ import {
   needsRescue,
   recordTemp,
   situationalBranches,
+  stepMinutes,
   timing,
 } from "./guide.js";
 
@@ -62,11 +63,20 @@ test("同じ工程の温度は最新の値を使う", () => {
   assert.equal(latestTemp(session, "absorb"), null);
 });
 
-test("語りの時間帯と比べて早い・遅いを判定する", () => {
+test("工程の目安と比べて早い・遅いを判定する", () => {
   const s = step("fruit");
   assert.equal(timing(s, 30), "early");
   assert.equal(timing(s, 40), "typical");
   assert.equal(timing(s, 50), "late");
+});
+
+test("目安のない工程では早い・遅いを判定しない", () => {
+  assert.equal(timing({}, 10), null);
+});
+
+test("工程の経過時間は工程に入った時から数える", () => {
+  const session = advance(process, createSession(process, 0), 60000);
+  assert.equal(stepMinutes(session, 180000), 2);
 });
 
 test("経過時間を分と秒で表示する", () => {

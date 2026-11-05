@@ -60,6 +60,7 @@
         "cause",
         "signs",
         "sign_action",
+        "check_habit",
         "actions"
       ],
       "additionalProperties": false,
@@ -79,6 +80,10 @@
         },
         "sign_action": {
           "type": "string"
+        },
+        "check_habit": {
+          "type": "string",
+          "description": "温度を測る習慣についての職人の言葉"
         },
         "actions": {
           "type": "array",
@@ -106,7 +111,7 @@
   "$defs": {
     "evidence": {
       "type": "object",
-      "description": "根拠となった発言",
+      "description": "根拠となった発言。職人の確認で加えた内容には付かない",
       "required": [
         "run",
         "at_sec",
@@ -243,7 +248,6 @@
         "id",
         "title",
         "instruction",
-        "typical_minutes",
         "criteria",
         "branches"
       ],
@@ -259,9 +263,9 @@
           "type": "string",
           "description": "表示し、読み上げる指示"
         },
-        "typical_minutes": {
+        "duration_minutes": {
           "type": "object",
-          "description": "本捏ね開始からの分。min は最も早い開始、max は最も遅い終了",
+          "description": "職人が語った、この工程の所要時間の目安（分）。語られていなければ入れない",
           "required": [
             "min",
             "max"
@@ -275,6 +279,10 @@
               "type": "number"
             }
           }
+        },
+        "time_note": {
+          "type": "string",
+          "description": "時間についての補足"
         },
         "ask_dough_temp": {
           "type": "boolean",

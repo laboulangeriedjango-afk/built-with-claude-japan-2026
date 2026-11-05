@@ -3,7 +3,6 @@ import {
   back,
   createSession,
   currentStep,
-  elapsedMinutes,
   finishDifference,
   formatClock,
   isFinished,
@@ -13,6 +12,7 @@ import {
   needsRescue,
   recordTemp,
   situationalBranches,
+  stepMinutes,
   timing,
 } from "./guide.js";
 import { checkCriterion, clearKey, isCameraOn, loadKey, saveKey, startCamera, stopCamera } from "./camera.js";
@@ -21,9 +21,9 @@ import { sightCriteria } from "./vision.js";
 const STORAGE_KEY = "hongone-session";
 const root = document.getElementById("root");
 const TIMING_LABEL = {
-  early: "語りの時間帯より早めです",
-  typical: "語りの時間帯の中です",
-  late: "語りの時間帯より遅めです",
+  early: "まだ目安の前です",
+  typical: "目安の時間です",
+  late: "目安を過ぎています",
 };
 
 let process;
@@ -80,6 +80,7 @@ function sourceLine(evidence) {
 }
 
 function evidenceDetails(evidence) {
+  if (!evidence.length) return el("p", { className: "source", textContent: "職人の確認による内容" });
   return el("details", { className: "source" },
     el("summary", { textContent: `根拠の発言 ${evidence.length}件` }), ...evidence.map(sourceLine));
 }
@@ -118,6 +119,19 @@ function signsPanel() {
 function limitAlert() {
   const text = `生地の温度は${process.limits.dough_temp_below - 1}度台までに抑えます。これ以上上げないようにしてください。`;
   return { text, node: el("section", { className: "panel alert" }, el("p", { textContent: text })) };
+}
+
+function timingText(step) {
+  const { duration_minutes: range, time_note: note } = step;
+  const parts = [];
+  if (range) {
+    const span = range.min === range.max ? `${range.min}分程度` : `${range.min}〜${range.max}分`;
+    const elapsed = Date.now() - session.stepStartedAt;
+    const state = TIMING_LABEL[timing(step, stepMinutes(session, Date.now()))];
+    parts.push(`この工程 ${formatClock(elapsed)}／目安 ${span}。${state}。`);
+  }
+  if (note) parts.push(note);
+  return parts.join("");
 }
 
 function finishLine(temp) {
@@ -301,6 +315,7 @@ function tempPanel(step) {
   };
   return el("section", { className: "panel" },
     el("h2", { textContent: "生地温度（℃）" }),
+    process.rescue ? el("p", { className: "muted", textContent: process.rescue.check_habit }) : null,
     el("div", { className: "temp-row" }, input, el("button", { textContent: "記録", onclick: submit })),
   );
 }
@@ -310,7 +325,6 @@ function renderStep() {
   const temp = latestTemp(session, step.id);
   const alerts = matchingTempBranches(step, temp);
   const notes = situationalBranches(step);
-  const minutes = elapsedMinutes(session, Date.now());
 
   const sections = [
     el("div", { className: "topbar" },
@@ -319,11 +333,7 @@ function renderStep() {
     ),
     el("h1", { textContent: step.title }),
     el("p", { className: "instruction", textContent: step.instruction }),
-    el("p", {
-      className: "muted",
-      id: "timing",
-      textContent: `目安 ${step.typical_minutes.min}〜${step.typical_minutes.max}分。${TIMING_LABEL[timing(step, minutes)]}`,
-    }),
+    el("p", { className: "muted", id: "timing", textContent: timingText(step) }),
     isOverLimit(process, temp) ? limitAlert().node : null,
     needsRescue(process, temp) ? rescuePanel() : null,
     isFinished(process, session) ? finishLine(temp) : null,
@@ -369,11 +379,7 @@ function tick() {
   const clock = document.getElementById("clock");
   if (clock) clock.textContent = formatClock(Date.now() - session.startedAt);
   const line = document.getElementById("timing");
-  if (line) {
-    const step = currentStep(process, session);
-    const state = timing(step, elapsedMinutes(session, Date.now()));
-    line.textContent = `目安 ${step.typical_minutes.min}〜${step.typical_minutes.max}分。${TIMING_LABEL[state]}`;
-  }
+  if (line) line.textContent = timingText(currentStep(process, session));
 }
 
 async function main() {
