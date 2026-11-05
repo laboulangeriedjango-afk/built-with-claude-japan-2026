@@ -113,4 +113,6 @@ node --test app/guide.test.js
 
 ## ライセンス
 
-（記入予定）
+MIT License（[LICENSE](LICENSE)）。コードに加えて、`data/` の工程データと映像のコマも同じ条件で公開します。
+
+`app/vendor/anthropic-sdk.js` は Anthropic TypeScript SDK を同梱したもので、ライセンスは `app/vendor/anthropic-sdk.LICENSE` に従います。
