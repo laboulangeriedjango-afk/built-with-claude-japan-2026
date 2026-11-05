@@ -102,12 +102,12 @@ async function loadReference(reference) {
   return loaded;
 }
 
-export async function checkCriterion(video, stepTitle, criterion) {
+export async function checkCriterion(video, stepTitle, criterion, stopped) {
   const client = new Anthropic({ apiKey: loadKey(), dangerouslyAllowBrowser: true });
   const [currentImages, references] = await Promise.all([
     captureSharpest(video),
     Promise.all((criterion.reference_frames ?? []).map(loadReference)),
   ]);
-  const request = buildVisionRequest({ stepTitle, criterion, references, currentImages });
+  const request = buildVisionRequest({ stepTitle, criterion, references, currentImages, stopped });
   return readVisionResponse(await client.beta.messages.create(request));
 }

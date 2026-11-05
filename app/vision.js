@@ -11,7 +11,8 @@ const SYSTEM = `あなたはパネットーネの本捏ねで、職人の基準�
 守ること:
 - 与えられた基準の質問だけに答える。一般的な製パン知識で判断を広げない
 - 参考映像と職人の言葉を手がかりに、今の映像を比べる
-- 回転中で映像はぶれる。複数の画像を合わせて、細部ではなく全体の色、形、まとまり方、ボウルへの付き方で判断する
+- 回転中の映像はぶれる。回転中は細部ではなく、全体の色、形、まとまり方、ボウルへの付き方で判断する
+- ミキサーを止めて撮った映像では、表面の細かさ、艶、粗さも見て判断する
 - 全体の様子でも判断できないとき、または手や物で生地が隠れているときだけ unclear にする
 - 届いていれば met、まだなら not_yet にする
 - note は作業者に読み上げる30字以内の一文にする。見えた事実だけを書く`;
@@ -33,13 +34,13 @@ function imageBlock(data) {
   return { type: "image", source: { type: "base64", media_type: "image/jpeg", data } };
 }
 
-export function buildVisionRequest({ stepTitle, criterion, references, currentImages }) {
+export function buildVisionRequest({ stepTitle, criterion, references, currentImages, stopped = false }) {
   const content = [];
   references.forEach(({ data, run, quote }) => {
     content.push({ type: "text", text: `参考映像（${run.replace("run", "")}回目。職人の言葉「${quote}」）` });
     content.push(imageBlock(data));
   });
-  content.push({ type: "text", text: "今の映像" });
+  content.push({ type: "text", text: stopped ? "今の映像（ミキサーを止めて撮影）" : "今の映像（回転中に撮影）" });
   currentImages.forEach((data) => content.push(imageBlock(data)));
   content.push({
     type: "text",

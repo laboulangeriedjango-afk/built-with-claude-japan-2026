@@ -103,9 +103,15 @@ function finishLine(temp) {
   return el("p", { className: "muted", textContent: `捏ね上げの目標 ${target}℃との差：${sign}${diff}℃` });
 }
 
-const STATUS_LABEL = { met: "基準に届いています", not_yet: "まだです", unclear: "判断できません" };
+const STOP_DELAY_MS = 5000;
 
-async function runCheck() {
+function verdictLabel({ status, stopped }) {
+  if (status === "not_yet") return "まだです";
+  if (status === "met") return stopped ? "基準に届いています" : "そろそろです。止めて確かめてください";
+  return stopped ? "判断できません" : "回転中は見えません。止めて確かめてください";
+}
+
+async function runCheck({ stopped = false } = {}) {
   if (vision.busy || !session || !isCameraOn()) return;
   const step = currentStep(process, session);
   const criteria = sightCriteria(step);
@@ -116,12 +122,13 @@ async function runCheck() {
   vision.message = "確認しています…";
   render();
   try {
-    const result = await checkCriterion(video, step.title, criterion);
+    const result = { ...(await checkCriterion(video, step.title, criterion, stopped)), stopped };
     vision.message = "";
     if (session && currentStep(process, session).id === step.id) {
       const before = vision.results.get(criterion.text)?.status;
       vision.results.set(criterion.text, result);
-      if (result.status === "met" && before !== "met") speak(result.note);
+      if (stopped) speak(`${verdictLabel(result)}。${result.note}`);
+      else if (result.status === "met" && before !== "met") speak(verdictLabel(result));
     }
   } catch (error) {
     vision.message = error.status === 401 ? "API キーを確認してください" : `確認できませんでした：${error.message}`;
@@ -141,12 +148,25 @@ async function toggleCamera() {
   }
   try {
     await startCamera(video);
-    vision.timer = setInterval(runCheck, CHECK_INTERVAL_MS);
+    vision.timer = setInterval(() => runCheck(), CHECK_INTERVAL_MS);
     runCheck();
   } catch (error) {
     vision.message = `カメラを使えません：${error.message}`;
     render();
   }
+}
+
+async function stopAndCheck() {
+  if (vision.busy) return;
+  vision.busy = true;
+  vision.message = "ミキサーを止めて、生地が見えるようにしてください";
+  render();
+  speak(vision.message);
+  await new Promise((resolve) => {
+    setTimeout(resolve, STOP_DELAY_MS);
+  });
+  vision.busy = false;
+  await runCheck({ stopped: true });
 }
 
 function keyForm() {
@@ -170,18 +190,18 @@ function cameraPanel(step) {
   const on = isCameraOn();
   return el("section", { className: "panel" },
     el("h2", { textContent: "カメラで確かめる" }),
-    el("p", { className: "muted", textContent: "結果は参考です。回転中の映像では、艶や滑らかさを見誤ることがあります。最後は手と目で確かめてください。" }),
+    el("p", { className: "muted", textContent: "回転中の確認は目安です。艶や滑らかさは、ミキサーを止めて確かめます。最後は手と目で判断してください。" }),
     on ? video : null,
     vision.message ? el("p", { className: "muted", textContent: vision.message }) : null,
     el("ul", { className: "criteria" }, ...criteria.map((c) => {
       const result = vision.results.get(c.text);
       return el("li", {},
         el("p", { textContent: c.visual_question }),
-        result ? el("p", { className: `verdict ${result.status}`, textContent: `${STATUS_LABEL[result.status]}：${result.note}` }) : null);
+        result ? el("p", { className: `verdict ${result.status}`, textContent: `${verdictLabel(result)}：${result.note}` }) : null);
     })),
     el("div", { className: "temp-row camera-actions" },
       el("button", { textContent: on ? "カメラを止める" : "カメラを開始", onclick: toggleCamera }),
-      on ? el("button", { textContent: "今すぐ確認", disabled: vision.busy, onclick: runCheck }) : null,
+      on ? el("button", { className: "primary", textContent: "止めて確認", disabled: vision.busy, onclick: stopAndCheck }) : null,
       on ? null : el("button", { textContent: "キーを消す", onclick: () => { clearKey(); render(); } })),
   );
 }

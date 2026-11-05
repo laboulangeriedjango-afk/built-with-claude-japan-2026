@@ -1,6 +1,7 @@
 """見て確認する基準に、語りの時点の映像を参考として付ける。
 
-回転中の映像はぶれるので、発言の前後から最も鮮明なコマを選ぶ。
+発言の近くでミキサーが止まっていれば、そのコマを使う（find_stops.py の結果）。
+なければ、発言の前後から最も鮮明なコマを選ぶ。
 使い方: python build_refs.py <工程データ> <文字起こしの親フォルダ> --hold-out run4
 --hold-out の仕込みは精度の検証に使うので、参考映像に含めない。
 """
@@ -14,6 +15,7 @@ from PIL import Image
 FRAME_INTERVAL_SEC = 5
 SEARCH_FRAMES = 2
 MAX_REFERENCES = 2
+STOP_SEARCH_SEC = 90
 
 
 def sharpness(path: Path) -> float:
@@ -29,6 +31,18 @@ def sharpest_frame(frames: Path, at_sec: float) -> Path | None:
     candidates = [frames / f"{n:05d}.jpg" for n in range(center - SEARCH_FRAMES, center + SEARCH_FRAMES + 1)]
     existing = [path for path in candidates if path.exists()]
     return max(existing, key=sharpness) if existing else None
+
+
+def stopped_frame(folder: Path, at_sec: float) -> Path | None:
+    path = folder / "stops.json"
+    if not path.exists():
+        return None
+    stops = json.loads(path.read_text(encoding="utf-8"))
+    near = [s for s in stops if abs((s["start_sec"] + s["end_sec"]) / 2 - at_sec) <= STOP_SEARCH_SEC]
+    if not near:
+        return None
+    best = min(near, key=lambda s: abs((s["start_sec"] + s["end_sec"]) / 2 - at_sec))
+    return folder / "frames" / best["best_frame"]
 
 
 def choose_evidence(evidence: list[dict], hold_out: set[str]) -> list[dict]:
@@ -64,7 +78,8 @@ def main() -> None:
                 continue
             references = []
             for item in choose_evidence(criterion["evidence"], set(args.hold_out)):
-                frame = sharpest_frame(runs[item["run"]] / "frames", item["at_sec"])
+                folder = runs[item["run"]]
+                frame = stopped_frame(folder, item["at_sec"]) or sharpest_frame(folder / "frames", item["at_sec"])
                 if frame is None:
                     continue
                 name = f"{item['run']}_{round(item['at_sec'])}.jpg"

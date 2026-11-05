@@ -1,5 +1,6 @@
 // 参考映像に使っていない仕込みのコマで、映像の確認が見分けられるかを測る。
-// 使い方: node analyzer/eval_vision.mjs <eval_frames.py の出力フォルダ>
+// 使い方: node analyzer/eval_vision.mjs <4回目の frames フォルダ>
+// 検証するのは、find_stops.py で見つけたミキサーが止まっている場面。
 // 正解は、4回目の語りの時刻から付けた仮のもの。
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -15,14 +16,13 @@ const apiKey = env.match(/ANTHROPIC_API_KEY=(.+)/)[1].trim();
 const client = new Anthropic({ apiKey });
 
 const CASES = [
-  { step: "step2", match: "表面", sec: 120, expected: "not_yet", why: "粉を入れた直後" },
-  { step: "step2", match: "表面", sec: 1050, expected: "met", why: "次の工程へ進む直前" },
-  { step: "step5", match: "塊", sec: 1500, expected: "not_yet", why: "バターを入れている最中" },
-  { step: "step5", match: "塊", sec: 1640, expected: "met", why: "大きな塊はもうないと発言" },
-  { step: "step6", match: "粗さ", sec: 1700, expected: "not_yet", why: "混ぜ始め" },
-  { step: "step6", match: "粗さ", sec: 2190, expected: "met", why: "そろそろ終わりにすると発言" },
-  { step: "step7", match: "フルーツ", sec: 2225, expected: "not_yet", why: "フルーツを入れた直後" },
-  { step: "step7", match: "フルーツ", sec: 2300, expected: "met", why: "フルーツを入れて約1分半後" },
+  { step: "step2", match: "表面", frame: 179, expected: "not_yet", why: "14:50 まだ次へ進まない時点" },
+  { step: "step2", match: "表面", frame: 218, expected: "met", why: "18:05 次へ進むと発言した直後" },
+  { step: "step5", match: "塊", frame: 305, expected: "not_yet", why: "25:20 バターの粒が見える" },
+  { step: "step6", match: "粗さ", frame: 305, expected: "not_yet", why: "25:20 バターを入れている最中" },
+  { step: "step6", match: "粗さ", frame: 448, expected: "met", why: "37:15 引っ張るとついてくると発言" },
+  { step: "step7", match: "フルーツ", frame: 448, expected: "not_yet", why: "37:15 フルーツを入れた直後" },
+  { step: "step7", match: "フルーツ", frame: 468, expected: "met", why: "38:50 捏ね上げの直前" },
 ];
 
 const framesDir = process.argv[2];
@@ -38,7 +38,8 @@ for (const item of CASES) {
     stepTitle: step.title,
     criterion,
     references,
-    currentImages: [0, 1, 2].map((i) => b64(join(framesDir, `${item.sec}_${i}.jpg`))),
+    currentImages: [b64(join(framesDir, `${String(item.frame).padStart(5, "0")}.jpg`))],
+    stopped: true,
   });
   const started = Date.now();
   const result = readVisionResponse(await client.beta.messages.create(request));
@@ -46,6 +47,6 @@ for (const item of CASES) {
   const ok = result.status === item.expected;
   if (ok) hits += 1;
   if (result.status === "unclear") unclear += 1;
-  console.log(`${ok ? "○" : "×"} ${item.step} ${item.sec}秒（${item.why}）期待=${item.expected} 結果=${result.status} ${seconds}秒「${result.note}」`);
+  console.log(`${ok ? "○" : "×"} ${item.step}（${item.why}）期待=${item.expected} 結果=${result.status} ${seconds}秒「${result.note}」`);
 }
 console.log(`一致 ${hits}/${CASES.length}、判断不能 ${unclear}`);

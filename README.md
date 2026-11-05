@@ -69,7 +69,8 @@ python analyzer/extract.py <動画フォルダ> <作業フォルダ>
 python analyzer/transcribe.py <作業フォルダ> --name transcript_loose
 python analyzer/build_process.py <作業フォルダ> data/processed/versions/v1.json --runs run1 run2 run3
 python analyzer/build_process.py <作業フォルダ> data/processed/versions/v2.json --base data/processed/versions/v1.json --runs run4
-python analyzer/build_refs.py data/processed/versions/v2.json <作業フォルダ> --hold-out run4
+python analyzer/find_stops.py <作業フォルダ>
+python analyzer/build_refs.py data/processed/process.json <作業フォルダ> --hold-out run4
 ```
 
 検査とテストは次のとおりです。
@@ -100,13 +101,13 @@ node --test app/guide.test.js
 - 語りからの工程の採集（`analyzer/build_process.py`）：Claude Opus 5.5 の構造化出力で、文字起こしを `shared/process.schema.json` の形にします。語られていない内容を足さないよう指示し、根拠の発言が文字起こしに実在するかをプログラムで検査します。検査に通らないデータは出力しません
 - 差分更新：既存の工程データに新しい仕込みの語りを反映します。v1（3回分）から v2（4回分）で判断が増えます
 - 職人の知見の反映：誤認識の修正（`analyzer/corrections.json`）と全体の決まり（`analyzer/craft_rules.json`）を入力にします。AI が「12分」と読んだ語りは、本人の確認で「十二分に」と直しました
-- 映像の確認（`app/vision.js`）：語りの時点の映像と職人の言葉を参考に、今の工程の基準に届いたかだけを Claude に問います。工程の進行は自動では行いません
+- 映像の確認（`app/vision.js`）：語りの時点の映像と職人の言葉を参考に、今の工程の基準に届いたかだけを Claude に問います。職人が実際に行うように、回転中は予告にとどめ、ミキサーを止めて確かめて判断します。工程の進行は自動では行いません
 
 **開発の中で**
 
 - Claude Code で、設計、実装、テスト、ブラウザでの画面確認までを進めました
 - `claude-api` スキルで、モデル、構造化出力、画像入力の最新の使い方を確認しました
-- 映像の確認は、参考映像に使っていない4回目の映像で検証しました（`analyzer/eval_vision.mjs`）。8場面のうち一致4、判断不能3、誤り1で、回転中の艶の判定が苦手と分かったため、結果を参考扱いとして画面に明記しています
+- 映像の確認は、参考映像に使っていない4回目の映像で検証しました（`analyzer/eval_vision.mjs`）。回転中の8場面は一致4、判断不能3、誤り1で、動きブレにより艶の判定が苦手と分かりました。そこで職人の確認の仕方に合わせ、動画から止まった場面を検出して（`analyzer/find_stops.py`）参考映像に使い、止めて確かめる流れに変えました。止まった7場面は一致4、判断不能1、「まだ」と慎重に答えた誤りが2で、「届いた」と誤る例はありませんでした。正解は語りの時刻から付けた仮のもので、場面数も少ないため、精度の保証ではありません
 
 ## ライセンス
 
