@@ -39,7 +39,13 @@ B を更新するには、新しい仕込みの動画を A に通し、そのデ
 
 ## 動かし方
 
-（記入予定）
+B（案内アプリ）はビルド不要です。リポジトリの直下で次を実行し、`http://localhost:8000/app/` を開きます。
+
+```
+python -m http.server 8000
+```
+
+テストは `node --test app/guide.test.js`、工程データの検査は `python analyzer/validate.py data/processed/process.json shared/process.schema.json` で実行します。
 
 ## データの出典
 
