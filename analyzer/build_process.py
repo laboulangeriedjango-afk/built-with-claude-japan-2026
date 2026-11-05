@@ -17,6 +17,7 @@ from validate import check_evidence, load_rows, validate_schema
 ROOT = Path(__file__).resolve().parent.parent
 SCHEMA_PATH = ROOT / "shared" / "process.schema.json"
 GLOSSARY_PATH = Path(__file__).resolve().parent / "glossary.json"
+CORRECTIONS_PATH = Path(__file__).resolve().parent / "corrections.json"
 MODEL = "claude-opus-5-5"
 SPLIT_GAP_SEC = 5
 PRICE_PER_MTOK = {"input": 4.0, "output": 20.0}
@@ -31,6 +32,8 @@ SYSTEM = """あなたは、パネットーネ職人の語りから本捏ねの�
 - 雑談、作業と無関係な発言、人名は使わない。材料を探す独り言も使わない
 - evidence の quote は入力の文字列をそのまま抜き出す。誤認識を直さない。at_sec は入力の秒数を使う
 - instruction と text は、誤認識を直した自然な日本語にする。用語集に従う
+- 職人の修正は語りより優先する。write_as があれば、その表記を使う
+- 読み上げで誤読しやすい表記を避ける
 - instruction は作業者への短い指示にする。音声で読み上げるので一文を短くする
 - kind が sight の基準には、映像を見て答えられる質問を visual_question に書く。材料の説明や画像全般の分析を求める質問にしない
 - 温度は映像から分からない。温度の判断は ask_dough_temp と branches で扱う
@@ -76,10 +79,12 @@ def output_schema() -> dict:
     return {key: value for key, value in schema.items() if key not in ("$schema", "title")}
 
 
-def build_prompt(runs: dict[str, list[dict]], base: dict | None, glossary: dict) -> str:
+def build_prompt(runs: dict[str, list[dict]], base: dict | None, glossary: dict, corrections: list[dict]) -> str:
     parts = [
         "用語集（文字起こしの誤認識 → 正しい語）:",
         json.dumps(glossary, ensure_ascii=False, indent=2),
+        "職人の修正:",
+        json.dumps(corrections, ensure_ascii=False, indent=2),
     ]
     if base:
         parts += [
@@ -137,8 +142,9 @@ def main() -> int:
     runs = {name: load_rows(folders[name]) for name in args.runs}
     base = json.loads(args.base.read_text(encoding="utf-8")) if args.base else None
     glossary = json.loads(GLOSSARY_PATH.read_text(encoding="utf-8"))
+    corrections = json.loads(CORRECTIONS_PATH.read_text(encoding="utf-8"))
 
-    data = generate(build_prompt(runs, base, glossary))
+    data = generate(build_prompt(runs, base, glossary, corrections))
     draft = args.output.with_suffix(".draft.json")
     draft.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
